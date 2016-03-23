@@ -45,26 +45,24 @@ bmi4 ~ 0
 bmi5 ~ 0
 bmi6 ~ 0 '
 
-model8.1a2 <-   ' i =~ 1*bmi1 + 1*bmi2 + 1*bmi3 + 1*bmi4 + 1*bmi5 + 1*bmi6
-		s1 =~ 0*bmi1 + 1*bmi2 + 2*bmi3 + 3*bmi4 + 3*bmi5 + 3*bmi6
-s2 =~ 0*bmi1 + 0*bmi2 + 0*bmi3 + 0*bmi4 + 1*bmi5 + 2*bmi6
+model8.1a2 <-'
+#intercept
+i =~ 1*bmi1 + 1*bmi2 + 1*bmi3 + 
+     1*bmi4 + 1*bmi5 + 1*bmi6
+#slope(first period)
+s1 =~ 0*bmi1 + 1*bmi2 + 2*bmi3 +
+      3*bmi4 + 3*bmi5 + 3*bmi6
+#slope(second period)
+s2 =~ 0*bmi1 + 0*bmi2 + 0*bmi3 + 
+      0*bmi4 + 1*bmi5 + 2*bmi6
 
-i ~~ i
-s1 ~~ s1
-s2 ~~ s2
-i ~~ s1 + s2
-s1 ~~ s2
-i ~ 1
-s1 ~ a*1 # s1 ~ a*1 and s2 ~ a*1 equality constraint on means to test slope differences;
-s2 ~ a*1
+i ~~ i ; s1 ~~ s1 ; s2 ~~ s2
+i ~~ s1 + s2 ; s1 ~~ s2
+i ~ 1 ; s1 ~ 1 ; s2 ~ 1
 
-
-bmi1 ~ 0
-bmi2 ~ 0
-bmi3 ~ 0
-bmi4 ~ 0
-bmi5 ~ 0
-bmi6 ~ 0 '
+bmi1 ~ 0; bmi2 ~ 0; bmi3 ~ 0;
+bmi4 ~ 0; bmi5 ~ 0;bmi6 ~ 0 
+'
 
 
 fitmodel8.1a <- lavaan::growth(model8.1a, data=health1)
@@ -100,3 +98,5 @@ ggplot(pred,aes(x=time,y=mean,group=1))+
                 geom_line()+
                 ylim(27, 28)
                 #geom_errorbar(aes(ymin=lowerCI,ymax=upperCI,width=.1))
+
+

@@ -1,0 +1,33 @@
+digraph "pathdiagram" {
+  rankdir=LR;
+  size="8,8";
+  node [fontname="Helvetica" fontsize=14 shape=box];
+  edge [fontname="Helvetica" fontsize=10];
+  center=1;
+  "level" [shape=ellipse]
+  "slope" [shape=ellipse]
+  "1" [shape=triangle]
+  "1" -> "1" [label="1"   dir=both]
+  "level" -> "X1" [label="1"];
+  "level" -> "X2" [label="1"];
+  "slope" -> "X2" [label="0.7*"];
+  "level" -> "X3" [label="1"];
+  "slope" -> "X3" [label="1.55*"];
+  "level" -> "X4" [label="1"];
+  "slope" -> "X4" [label="2.51*"];
+  "level" -> "X5" [label="1"];
+  "slope" -> "X5" [label="3.64*"];
+  "level" -> "X6" [label="1"];
+  "slope" -> "X6" [label="5"];
+  "1" -> "level" [label="20.2*"];
+  "1" -> "slope" [label="9.68*"];
+  "X1" -> "X1" [label="9.09*"  dir=both];
+  "X2" -> "X2" [label="9.09*"  dir=both];
+  "X3" -> "X3" [label="9.09*"  dir=both];
+  "X4" -> "X4" [label="9.09*"  dir=both];
+  "X5" -> "X5" [label="9.09*"  dir=both];
+  "X6" -> "X6" [label="9.09*"  dir=both];
+  "level" -> "level" [label="4.07*"  dir=both];
+  "slope" -> "level" [label="2.19*"  dir=both];
+  "slope" -> "slope" [label="2.78*"  dir=both];
+}

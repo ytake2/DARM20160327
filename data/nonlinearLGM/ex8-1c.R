@@ -80,7 +80,11 @@ head
 
 summary(fitmodel8.1c)
 plot(pred$time,pred$estimated.mean, ylim=c(27, 28), 
+     ylab="estimated.mean", xlab="time",bty="l", type="l", col="red")
+par(new=T)
+plot(pred$time,pred$estimated.mean, ylim=c(27, 28), 
      ylab="estimated.mean", xlab="time",bty="l")
+
 curve(27.180 + 0.168*x, add=T, from=0, to=3, col="red")
 curve((27.75881-0.054*3)+ 0.054*x, add=T, from=3, to=5,col="blue")
 abline(v=3, lty=3)
