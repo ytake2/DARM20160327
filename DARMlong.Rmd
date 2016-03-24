@@ -195,8 +195,8 @@ datatable(fits, extensions = 'Buttons',
 ## 推定結果の出力
 
 ```{r}
-library(xtable)
-xtable(parameterEstimates(fit.all$lavaan$quadratic),comment=F,type='html')
+datatable(parameterEstimates(fit.all$lavaan$quadratic),
+          options=list(dom="t"))
 ```
 
 ## 推定平均値の遷移プロット

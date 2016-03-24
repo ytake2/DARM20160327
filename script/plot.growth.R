@@ -1,4 +1,6 @@
 plot.growth<-function(obj, type, ...){
+  require(ggplot2)
+  require(plyr)
   
   all<-obj
   
