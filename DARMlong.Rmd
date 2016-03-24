@@ -182,7 +182,7 @@ datatable(fits,option=list(dom='t'))
 ```
 
 
-## ボタンをつけてあげると使いやすい
+## おまけ (ポチッってデータ取得)
 
 ```{r, echo=T}
 datatable(
