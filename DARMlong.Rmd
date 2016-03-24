@@ -68,225 +68,129 @@ knitr::include_graphics("img/latent.jpeg")
 # サンプルデータ
 
 ## BMIの経時データ
-- 6時点のBody Mass Index (BMI)
-
 ```{r,echo=F, results="asis"}
-data<-read.csv("data/bmi.csv",header=T)
+data<-read.csv("data/Garland.csv",header=T)
+data<-data[,2:7]
+
 library(ggplot2)
 library(plyr)
-M<-sapply(data,mean)[3:8]
-SD<-sapply(data,sd)[3:8]
-M<-data.frame(mean=M,sd=SD, time=0:5)
-library(xtable)
+library(shiny)
+library(shinyapps)
+
+M<-as.data.frame(t(sapply(data,each(mean,sd))))
 M<-round(M,digits=2)
-print(xtable(t(M[,1:2])), comment=F, type="html")
+M$time<-0:5
+
+library(DT)
+M2<-t(M)
+datatable(M2, options = list(dom = 't'))
 ```
 
-```{r}
+```{r, fig.width=5, fig.height=2}
 ggplot(M, aes(x=time,y=mean, group=1))+ 
-              geom_line()+ylim(27,28)+theme_bw()
+              geom_line(col="blue", size=3)+
+              ylim(3,4)+
+              #geom_line(aes(y=mean.Y,group=1),size=3,col="red")+
+              theme_bw()
 ```
 
-## 普通にLCM
+Newsom, J. T. (2015). Longitudinal Structural Equation Modeling: A Comprehensive Introduction. Routledge.  
+http://www.longitudinalsem.com/health.dat  
+
+## 成長曲線モデル
+
+### lavaanでまじめに書く
+```
+level =~ 1* bmi1 +1* bmi2 +1* bmi3 +
+         1* bmi4 +1* bmi5 +1* bmi6 
+slope =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 
+         3 * bmi4 + 4 * bmi5 + 5 * bmi6 
+bmi1 ~~(vare)* bmi1 
+bmi2 ~~(vare)* bmi2 
+bmi3 ~~(vare)* bmi3 
+bmi4 ~~(vare)* bmi4 
+bmi5 ~~(vare)* bmi5 
+bmi6 ~~(vare)* bmi6 
+```
+結構めんどい...
+
+## 救世主登場
+### RAMpathパッケージ  
+- 潜在成長曲線系のlavaanコードを自動生成して実行してくれる関数が充実    
+    - 成長曲線モデル: ramLCM    
+    - 潜在差得点モデル:ramLCS    
+    - 2変量の潜在差得点モデル: ramBLCS    
+     
+- lavaanのモデルを吐き出せるので、RAMpathで実行した後lavaanで微調整という流れで効率よくモデリング
+
+## ramLCM
+- 切片のみのモデル (model='no')
+    
+- 線形モデル (model='linear')
+    
+- 二次曲線モデル (model='quadratic')
+    
+- latent basisモデル (model = 'latent')
+
+## 一行で簡潔に推定
+### 一気にどん
+```{r, echo=T, results='hide'}
+library(RAMpath)
+fit.all<-ramLCM(data=data,outcome=1:6, model='all')
+```
+
+### 個別にどん
+```{r, echo=T, results='hide'}
+fit.no<-ramLCM(data=data,outcome=1:6, model='no')
+fit.linear<-ramLCM(data=data,outcome=1:6, model='linear')
+fit.quadratic<-ramLCM(data=data,outcome=1:6, model='quadratic')
+fit.latent<-ramLCM(data=data,outcome=1:6, model='latent')
+```
+
+## 切片のみモデル
+ lavannコード
+```{r, echo=T}
+cat(fit.all$model$no)
+```
+
+## 線形モデル
+ lavannコード
+```{r, echo=T}
+cat(fit.all$model$linear)
+```
+
+## 二次曲線モデル
+ lavannコード
+```{r, echo=T}
+cat(fit.all$model$quadratic)
+```
+
+## latent basisモデル
+ lavannコード
+```{r, echo=T}
+cat(fit.all$model$latent)
+```
+
+## 適合度
 
 ```{r, echo=T}
-model0<-'
-#切片因子の設定
-i =~ 1*bmi1 + 1*bmi2 + 1*bmi3 + 
-     1*bmi4 + 1*bmi5 + 1*bmi6
-     
-#傾き因子の設定
-s1 =~ 0*bmi1 + 1*bmi2 + 2*bmi3 +
-      3*bmi4 + 4*bmi5 + 5*bmi6
-
-#切片と傾きの分散
-i ~~ i ; s1 ~~ s1 ;
-#因子間相関
-i ~~ s1
-#因子平均
-i ~ 1 ; s1 ~ 1 
-#誤差分散
-bmi1 ~ 0; bmi2 ~ 0; bmi3 ~ 0
-bmi4 ~ 0; bmi5 ~ 0; bmi6 ~ 0
-'
+fits<-round(fit.all$fit[c("chisq","df","pvalue", 
+                          "cfi","srmr","rmsea", 
+                          "aic","bic"),],
+                        digits=2)
+datatable(fits,option=list(dom='t'))
 ```
 
 
-## LCMの推定結果
+## ボタンをつけてあげると使いやすい
 
-```{r, echo=T, resuts='asis'}
-# 成長曲線モデルの推定
-library(lavaan)
-model0.fit<-growth(model0,data=data)
+```{r, echo=T}
+datatable(
+  fits, extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+)
 ```
-
-```{r, results='asis'}
-#適合度の抽出
-fit0.m<-round(fitMeasures(model0.fit)
-            [c("chisq","df","pvalue",
-               "cfi","srmr","rmsea")],digits=2)
-fit0.m<-t(as.data.frame(fit0.m))
-print(xtable(fit0.m),comment=F,type="html")
-```
-
-
-## パラメータの推定値
-```{r}
-library(DT)
-fit0.params<-as.data.frame(parameterEstimates(model0.fit))
-fit0.params[,4:ncol(fit0.params)]<-round(fit0.params[,4:ncol(fit0.params)],digits=3)
-fit0.is<-fit0.params[13:17,]
-fit0.is<-fit0.is[c(4,5,1,2,3),]
-fit0.is[,2]<-c("平均","　","分散","　", "因子間相関")
-fit0.is<-fit0.is[,-3]
-#fit0.is<-fit[]
-datatable(fit0.is)
-```
-
--
-
-
-# Piecewise Model
-
-##　コード全体
-
-```{r}
-model1 <-'
-
-#切片因子の設定
-i =~ 1*bmi1 + 1*bmi2 + 1*bmi3 + 
-     1*bmi4 + 1*bmi5 + 1*bmi6
-     
-#傾き因子の設定
-s1 =~ 0*bmi1 + 1*bmi2 + 2*bmi3 +
-      3*bmi4 + 3*bmi5 + 3*bmi6
-
-s2 =~ 0*bmi1 + 0*bmi2 + 0*bmi3 + 
-      0*bmi4 + 1*bmi5 + 2*bmi6
-
-#切片と傾きの分散
-i ~~ i ; s1 ~~ s1 ; s2 ~~ s2
-
-#因子間相関
-i ~~ s1 + s2 ; s1 ~~ s2
-
-#因子平均
-i ~ 1 ; s1 ~ 1 ; s2 ~ 1
-
-#誤差分散
-bmi1 ~ 0; bmi2 ~ 0; bmi3 ~ 0
-bmi4 ~ 0; bmi5 ~ 0; bmi6 ~ 0
-'
-```
-
-## 切片因子の設定  
-- 因子負荷を1に固定 
-
-```
-#lavaan code
-i =~ 1*t1+1*t2+1*t3+1*t4+1*t5
-```
-```{r, echo=F}
-source("diag.R")
-library(DiagrammeR)
-grViz(int)
-```
-
-## 前半の傾きの設定  
-前半の傾き(s1)の因子負荷を  
-区分時点以降同値に固定  
-
-```
-#lavaan model code
-i=~0*t1+1*t2+2*t3+1*t3+1*t3
-```
-```{r, fig.align='right', echo=F}
-grViz(s1)
-```
-
-## 後半の傾きの設定
-後半の傾き(s1)の因子負荷を  
-区分時点まで0に固定  
-```
-#lavaan model code
-i=~0*t1+0*t2+0*t3+1*t4+2*t5
-```
-```{r, fig.align='right', echo=F}
-grViz(s2)
-```
-
-
-## その他の設定
-- 切片と傾きの分散を自由推定
-- 因子間相関を自由推定
-- 因子平均を自由推定
-- 誤差分散を0に固定  
-
-```
-#切片と傾きの分散
-i ~~ i ; s1 ~~ s1 ; s2 ~~ s2
-#因子間相関
-i ~~ s1 + s2 ; s1 ~~ s2
-#因子平均
-i ~ 1 ; s1 ~ 1 ; s2 ~ 1
-#誤差分散
-bmi1 ~ 0; bmi2 ~ 0; bmi3 ~ 0
-bmi4 ~ 0; bmi5 ~ 0; bmi6 ~ 0
-'
-```
-
-
-## 推定の実行  
-- モデル
-
-```
-library(lavaan)
-model1.fit<-lavaan::growth(model1, data)
-```
-```{r}
-library(lavaan)
-model1.fit<-lavaan::growth(model1, data)
-```
-
-- 適合度
-```
-fit1.m<-round(fitMeasures(model1)[c("chisq","df","pvalue",
-                                  "cfi","srmr","rmsea")],digits=2)
-fit1.m<-t(as.data.frame(fit1))
-print(xtable(fit1.m),comment=F,type="html")
-```
-```{r, results='asis'}
-fit1.m<-round(fitMeasures(model1.fit)
-            [c("chisq","df","pvalue",
-               "cfi","srmr","rmsea")],digits=2)
-fit1.m<-t(as.data.frame(fit1.m))
-print(xtable(fit1.m),comment=F,type="html")
-```
-
-
-# polynomial models
-
-## 二次以上の曲線モデル  
-- quadratic curveなど
-- 時間変数のコーディング要検討
-
-```{r, out.width = 400, fig.retina = NULL}
-knitr::include_graphics("img/quad.jpeg")
-```
-
-## こんなモデル
-
-# latent basis model
-
-## データドリブンに遷移パターンを推定
-- 傾きの因子負荷を自由推定する
-
-```{r, out.width = 400, fig.retina = NULL}
-knitr::include_graphics("img/latent.jpeg")
-```
-
-## こんなモデル
-
-
 
 

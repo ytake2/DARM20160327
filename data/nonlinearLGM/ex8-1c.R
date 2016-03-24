@@ -74,19 +74,11 @@ ggplot(pred,aes(x=time,y=estimated.mean,group=1))+
 
 
 
-aaa<-data.frame(time = seq(from = min(newdata.l$time), to = max(newdata.l$time), by = 0.01))
-aaa$aaa<-predict(fitmodel8.1a, newdata=newdata)
-head
-
 summary(fitmodel8.1c)
-plot(pred$time,pred$estimated.mean, ylim=c(27, 28), 
-     ylab="estimated.mean", xlab="time",bty="l", type="l", col="red")
-par(new=T)
-plot(pred$time,pred$estimated.mean, ylim=c(27, 28), 
-     ylab="estimated.mean", xlab="time",bty="l")
-
-curve(27.180 + 0.168*x, add=T, from=0, to=3, col="red")
-curve((27.75881-0.054*3)+ 0.054*x, add=T, from=3, to=5,col="blue")
+plot(pred$time,pred$mean, ylim=c(3, 4), 
+     ylab="estimated.mean", xlab="time",bty="l", type="l", col="white")
+curve(3.44 + (-0.099*x), add=T, from=0, to=3, col="red")
+curve(3.654+(-0.032*3)+ -0.032*x, add=T, from=3, to=5,col="blue")
 abline(v=3, lty=3)
  
 pred$estimated.mean[5]-pred$estimated.mean[4]

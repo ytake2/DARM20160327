@@ -16,7 +16,8 @@ long.d1<-gather(health1, time, value, bmi1:bmi6)
 long.d1$time<-as.factor(long.d1$time)
 long.d1$time<-as.numeric(long.d1$time)-1
 
-ggplot(long.d1, aes(x=time,y=value, group=id))+stat_smooth(se=F)
+
+ggplot(long.d1, aes(x=time,y=value, group=id))+stat_smooth(aes(group=NULL), se=F)
 
 #+++++++++++++++++++++++++++++++
 # Chapter 8, Example 8.1a
@@ -58,7 +59,8 @@ s2 =~ 0*bmi1 + 0*bmi2 + 0*bmi3 +
 
 i ~~ i ; s1 ~~ s1 ; s2 ~~ s2
 i ~~ s1 + s2 ; s1 ~~ s2
-i ~ 1 ; s1 ~ 1 ; s2 ~ 1
+i ~ 1 
+a*s1 ~ 1 ; a*s2 ~ 1
 
 bmi1 ~ 0; bmi2 ~ 0; bmi3 ~ 0;
 bmi4 ~ 0; bmi5 ~ 0;bmi6 ~ 0 
