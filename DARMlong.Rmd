@@ -6,10 +6,10 @@ output:
   revealjs::revealjs_presentation:
     pandoc_args: ["--slide-level", "2"]
     theme: white
-    hilight: default
+    hilight: "monochrome"
     center: true
     transition: fade
-    incremental: true
+    incremental: false
     fig_width: 7
     fig_height: 4
     reveal_options:
@@ -233,7 +233,7 @@ datatable(fits, extensions = 'Buttons',
 ```{r, echo=T}
 parm<-parameterEstimates(fit.all$lavaan$quadratic)
 parm[,5:10]<-round(parm[,5:10],digits=3)
-datatable(parm,
+datatable(parm[c(28:30,37:39),],
           extensions = 'Scroller', 
           options = list(dom= ' t',
                          deferRender = TRUE, 
@@ -277,6 +277,35 @@ i ~~ s1 + s2; s1 ~~ s2
 
 #因子平均
 i ~ 1 ; s1 ~ 1 ; s2 ~ 1
+
+#誤差分散
+X1 ~ 0; X2 ~ 0; X3 ~ 0
+X4 ~ 0; X5 ~ 0; X6 ~ 0
+'
+```
+```{r}
+model1.2 <-'
+
+#切片因子の設定
+i =~ 1*X1 + 1*X2 + 1*X3 + 
+1*X4 + 1*X5 + 1*X6
+
+#傾き因子の設定
+s1 =~ 0*X1 + 1*X2 + 2*X3 +
+3*X4 + 3*X5 + 3*X6
+
+s2 =~ 0*X1 + 0*X2 + 0*X3 +
+0*X4 + 1*X5 + 2*X6
+
+
+#切片と傾きの分散
+i ~~ i ; s1 ~~ s1 ; s2 ~~ s2; 
+
+#因子間相関
+i ~~ s1 + s2; s1 ~~ s2
+
+#因子平均
+i ~ 1 ; s1 ~ (a)*1 ; s2 ~ (a)*1
 
 #誤差分散
 X1 ~ 0; X2 ~ 0; X3 ~ 0
@@ -349,6 +378,7 @@ model1.fit<-lavaan::growth(model1, data)
 ```{r, echo=F}
 
 model1.fit<-lavaan::growth(model1, data=data)
+model1.2fit<-lavaan::growth(model1.2, data=data)
 
 
 library(tidyr)
@@ -384,6 +414,70 @@ fit1.m<-round(fitMeasures(model1)[c("chisq","df","pvalue",
 fit1.m<-t(as.data.frame(fit1))
 print(xtable(fit1.m),comment=F,type="html")
 ```
+- piecewise
+```{r}
+fit1.m<-round(fitMeasures(model1.fit)
+[c("chisq","df","pvalue",
+"cfi","srmr","rmsea")],digits=2)
+fit1.m<-t(as.data.frame(fit1.m))
+datatable(fit1.m,options=list(dom="t"))
+```
+
+- quadratic
+```{r}
+datatable(t(fits[,4]),option=list(dom='t'))
+```
+
+
+## 前半と後半の傾きに違いがあるか？
+- 傾き因子の平均に等値制約を置いたモデルと比較
+```
+#傾き因子平均が等値
+s1 ~ (a)*1 ; s2 ~ (a)*1
+```
+```{r, echo=T}
+# model1.2fit = 等値制約のモデル
+anova(model1.2fit, model1.fit)
+```
+
+## もうちょい頑張る
+- 前半を２次曲線モデルに
+```{r, echo=T}
+model2 <-'
+#切片因子の設定
+i =~ 1*X1 + 1*X2 + 1*X3 + 1*X4 + 1*X5 + 1*X6
+
+#傾き因子の設定
+s1 =~ 0*X1 + 1*X2 + 2*X3 +3*X4 + 3*X5 + 3*X6
+s2 =~ 0*X1 + 1*X2 + 4*X3 +9*X4 + 9*X5 + 9*X6
+s3 =~ 0*X1 + 0*X2 + 0*X3 +0*X4 + 1*X5 + 2*X6
+
+#切片と傾きの分散
+i ~~ i ; s1 ~~ s1 ; s2 ~~ s2; s3 ~~ s3; 
+
+#因子間相関
+i ~~ s1 + s2 + s3; s1 ~~ s2 + s3 ; s2 ~~ s3 ;
+
+#因子平均
+i ~ 1 ; s1 ~ 1 ; s2 ~ 1 ; s3 ~ 1
+
+#誤差分散
+X1 ~ 0; X2 ~ 0; X3 ~ 0; X4 ~ 0; X5 ~ 0; X6 ~ 0
+'
+```
+
+##　どやさ
+-今回の適合度
+```{r, echo=T}
+model2.fit<-lavaan::growth(model2, data=data)
+fit2.m<-round(fitMeasures(model2.fit)
+[c("chisq","df","pvalue",
+"cfi","srmr","rmsea")],digits=2)
+fit2.m<-t(as.data.frame(fit2.m))
+datatable(fit2.m,options=list(dom="t"))
+```
+
+- さっきのpiecewiseモデル
 ```{r, results='asis'}
 fit1.m<-round(fitMeasures(model1.fit)
 [c("chisq","df","pvalue",
@@ -392,12 +486,41 @@ fit1.m<-t(as.data.frame(fit1.m))
 datatable(fit1.m,options=list(dom="t"))
 ```
 
+- 圧倒的なfit感!!
+
+## 圧倒的なfit感!!
+
+```{r}
+library(tidyr)
+newdata<-as.data.frame(lavPredict(model2.fit, type = "ov"))
+newdata$id<-1:length(newdata[,1])
+
+newdata.l<-gather(newdata,time,value,X1:X6)
+newdata.l$time<-as.factor(newdata.l$time)
+newdata.l$time<-as.numeric(newdata.l$time)-1
+
+mean.pred<-apply(newdata,2, mean)
+sd.pred<-apply(newdata,2, sd)
+low<-mean.pred-1.96*sd.pred
+up<-mean.pred+1.96*sd.pred
+
+pred<-data.frame(mean=mean.pred,sd=sd.pred,lowerCI=low,upperCI=up)[-7,]
+pred$time<-0:5
+
+library(ggplot2)
+plot(pred$time,  pred$mean, bty="l")
+f=function(x)3.494+-0.269*x+0.077*(x^2)
+curve(f, from=0, to=3, add=T, bty="l",col="blue")
+f=function(x)3.38+(0.039*3)+(-0.039*x)
+curve(f, from=3, to=5, add=T, bty="l",col="blue")
+abline(v=3, lty=2)
+```
+
 
 ##　期間ごとに切片が異なるモデル
-
+- 二つ切片因子を設定
 ```{r, echo=T}
 model2.2 <-'
-
 i1 =~ 1*X1 + 1*X2 + 1*X3 + 0*X4 + 0*X5 + 0*X6
 i2 =~ 0*X1 + 0*X2 + 0*X3 + 1*X4 + 1*X5 + 1*X6
 s1 =~ 0*X1 + 1*X2 + 2*X3 + 3*X4 + 3*X5 + 3*X6
@@ -413,7 +536,7 @@ i2 ~~ s1 + s2
 s1 ~~ s2
 i1 ~ 1
 i2 ~ 1
-s1 ~ 1 #do s1 ~ a*1 and s2 ~ a*1 to constrain intercepts to be equal for difference test;
+s1 ~ 1
 s2 ~ 1
 
 X1 ~ 0
@@ -424,6 +547,7 @@ X5 ~ 0
 X6 ~ 0 '
 ```
 
+## こんな感じでプロット
 
 ```{r}
 library(lavaan)
@@ -442,7 +566,24 @@ mean.pred<-apply(newdata,2, mean)
 sd.pred<-apply(newdata,2, sd)
 low<-mean.pred-1.96*sd.pred
 up<-mean.pred+1.96*sd.pred
+
+pred<-data.frame(mean=mean.pred,sd=sd.pred,lowerCI=low,upperCI=up)[-7,]
+pred$time<-0:5
+
+plot(pred$time,  pred$mean, bty="l", col="white", ylim=c(3,4))
+f=function(x)3.475+(-0.112*x)
+curve(f, from=0, to=3, add=T, bty="l",col="blue")
+f=function(x)3.38+0.177+(-0.039*x)
+curve(f, from=3, to=5, add=T, bty="l",col="blue")
+abline(v=3, lty=2)
 ```
+
+
+## 成長曲線モデルまとめ
+- 遷移パターンは複数のモデルを比較検討
+- 切片のみ、線形、二次曲線、latent basis
+- RAMpath パッケージで瞬殺
+- 区切りが明確な場合はpiecewiseも試してみよう
 
 
 # ２変量の関係性が知りたい
