@@ -35,6 +35,7 @@ opts_chunk$set(warning=F, message=F,echo=F)
   
       
 ### 2.多変量の成長曲線モデル
+  - parallel growth model
   - autoregressive latent trajectory Model
   - latent change score model
 
@@ -67,7 +68,7 @@ knitr::include_graphics("img/piecewise1.jpg")
 
 # サンプルデータ
 
-## BMIの経時データ
+## ポジ感情の経時データ
 ```{r,echo=F, results="asis"}
 data<-read.csv("data/Garland.csv",header=T)
 data<-data[,2:7]
@@ -83,7 +84,11 @@ M$time<-0:5
 
 library(DT)
 M2<-t(M)
-datatable(M2, options = list(dom = 't'))
+#datatable(M2, options = list(dom = 't',  initComplete #= JS(
+#    "function(settings, json) {",
+#    "$(this.api().table().header()).css({'background-#color': '#E8A317', 'color': '#fff'});",
+#    "}")))
+kable(M2)
 ```
 
 
@@ -95,8 +100,8 @@ ggplot(M, aes(x=time,y=mean, group=1))+
               theme_bw()
 ```
 
-Newsom, J. T. (2015). Longitudinal Structural Equation Modeling: A Comprehensive Introduction. Routledge.  
-http://www.longitudinalsem.com/health.dat  
+<font size="1">
+Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness training promotes upward spirals of positive affect and cognition: multilevel and autoregressive latent trajectory modeling analyses. Frontiers in psychology, 6.</font>
 
 
 # Rで潜在成長曲線モデル
@@ -154,31 +159,55 @@ fit.latent<-ramLCM(data=data,outcome=1:6, model='latent')
 ```{r, echo=T}
 cat(fit.all$model$no)
 ```
+- 傾き因子を排除
+- 初期値から得点の変化なし
+
 
 ## 線形モデル
  lavaanコード
 ```{r, echo=T}
 cat(fit.all$model$linear)
 ```
+- 傾き因子の因子負荷が単調増加
+  (0, 1, 2, 3, 4, 5)
+
 
 ## 二次曲線モデル
  lavaanコード
 ```{r, echo=T}
 cat(fit.all$model$quadratic)
 ```
+- 二つ目の傾き因子の負荷は, 一つ目の傾き因子の二乗
+  (0, 1, 4, 9, 16, 25)
+
 
 ## latent basisモデル
  lavaanコード
 ```{r, echo=T}
 cat(fit.all$model$latent)
 ```
-
-## データドリブンに遷移パターンを推定
 - 傾きの因子負荷を自由推定する
+- データドリブンな遷移パターン
 
-```{r, out.width = 400, fig.retina = NULL}
-knitr::include_graphics("img/latent.jpeg")
+## 遷移プロット
+- plot.growth関数(自作)
+```{r, echo=T}
+source("script/plot.growth.R")
+a<-plot.growth(fit.all, type="no")+theme_bw()
+b<-plot.growth(fit.all, type="lin")+theme_bw()
+c<-plot.growth(fit.all, type="quad")+theme_bw()
+d<-plot.growth(fit.all, type="latent")+theme_bw()
 ```
+```{r}
+library(grid)
+grid.newpage() #空の画面を作る
+pushViewport(viewport(layout=grid.layout(2, 2))) 
+print(a, vp=viewport(layout.pos.row=1, layout.pos.col=1)) 
+print(b, vp=viewport(layout.pos.row=1, layout.pos.col=2)  ) 
+print(c, vp=viewport(layout.pos.row=2, layout.pos.col=1)  ) 
+print(d, vp=viewport(layout.pos.row=2, layout.pos.col=2)  ) 
+```
+
 
 ## 適合度
 
@@ -194,7 +223,7 @@ datatable(fits,option=list(dom='t'))
 
 ```{r, echo=F}
 datatable(fits, extensions = 'Buttons', 
-          options = list(dom = 'Bfrtip',
+          options = list(dom = 'B',
           buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
 ```
 
