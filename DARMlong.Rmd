@@ -231,7 +231,14 @@ datatable(fits, extensions = 'Buttons',
 ## 推定結果の出力
 
 ```{r, echo=T}
-datatable(parameterEstimates(fit.all$lavaan$quadratic),options=list(dom="t"))
+parm<-parameterEstimates(fit.all$lavaan$quadratic)
+parm[,5:10]<-round(parm[,5:10],digits=3)
+datatable(parm,
+          extensions = 'Scroller', 
+          options = list(dom= ' t',
+                         deferRender = TRUE, 
+                         scrollY = 200, 
+                         scroller = TRUE))
 ```
 
 ## 推定平均値の遷移プロット
