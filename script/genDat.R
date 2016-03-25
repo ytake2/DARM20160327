@@ -25,7 +25,7 @@ m<-c(3.45,3.29,3.25,3.36,3.33,3.27,3.37,3.25,3.28,3.39,3.38,3.31)
 
 #create dataset
 library(MASS)
-Garland<-as.data.frame(mvrnorm(n=800,mu=m,Sigma=Garland.mat2,empirical=F))
+Garland<-as.data.frame(mvrnorm(n=2000,mu=m,Sigma=Garland.mat2,empirical=F))
 
 colnames(Garland)<-c(paste0("X",1:6),paste0("Y",1:6))
 
