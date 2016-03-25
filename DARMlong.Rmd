@@ -173,6 +173,13 @@ cat(fit.all$model$quadratic)
 cat(fit.all$model$latent)
 ```
 
+## データドリブンに遷移パターンを推定
+- 傾きの因子負荷を自由推定する
+
+```{r, out.width = 400, fig.retina = NULL}
+knitr::include_graphics("img/latent.jpeg")
+```
+
 ## 適合度
 
 ```{r, echo=T}
@@ -330,12 +337,11 @@ ggplot(pred,aes(x=time,y=mean,group=1))+
 geom_point(size=3)+ylim(3.25, 3.5)+geom_line()+theme_bw()+
 geom_vline(xintercept = 3,  lty=2)
 
-
-#geom_errorbar(aes(ymin=lowerCI,ymax=upperCI,width=.1))
 ```
 
 
-## 適合度
+## フィットしてる？
+
 ```
 fit1.m<-round(fitMeasures(model1)[c("chisq","df","pvalue",
 "cfi","srmr","rmsea")],digits=2)
@@ -400,34 +406,31 @@ mean.pred<-apply(newdata,2, mean)
 sd.pred<-apply(newdata,2, sd)
 low<-mean.pred-1.96*sd.pred
 up<-mean.pred+1.96*sd.pred
-
-
 ```
 
-# polynomial models
 
-## 二次以上の曲線モデル  
-- quadratic curveなど
-- 時間変数のコーディング要検討
+# ２変量の関係性が知りたい
 
-```{r, out.width = 400, fig.retina = NULL}
-knitr::include_graphics("img/quad.jpeg")
-```
-
-## こんなモデル
-
-# latent basis model
-
-## データドリブンに遷移パターンを推定
-- 傾きの因子負荷を自由推定する
-
-```{r, out.width = 400, fig.retina = NULL}
-knitr::include_graphics("img/latent.jpeg")
-```
-
-## こんなモデル
+## モチベーション
+- 2変数の時系列データ間の関係が知りたい
 
 
+## モデル
+- parallel growth model
+- auto regressive latent trajectory model
+- latent change score model
 
+# parallel growth model
+
+## あああ
+
+# ALTM
+
+## いいい
+
+
+# LCS
+
+## ううう
 
 
