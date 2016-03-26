@@ -35,7 +35,7 @@ opts_chunk$set(warning=F, message=F,echo=F)
   
       
 ### 2.多変量の成長曲線モデル
-  - parallel growth model
+  - parallel process growth model
   - autoregressive latent trajectory Model
   - latent change score model
 
@@ -63,7 +63,9 @@ knitr::include_graphics("img/latent.jpeg")
 ```{r, out.width = 500, fig.retina = NULL}
 knitr::include_graphics("img/piecewise1.jpg")
 ```
-  
+
+
+ 
 ### piecewise model  
 
 # サンプルデータ
@@ -640,25 +642,29 @@ Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness tr
 
 
 ## 有効なモデル
-- parallel growth model
+- parallel process growth model
 - auto regressive latent trajectory model
 - latent change score model
 
-# parallel growth model
+# parallel process growth model
 
-##　 
+##　
 1. 各変数に最適な潜在成長曲線モデルを検討
 2. 潜在変数(切片と傾き)間の相関を推定
-   
-- ポジ感情のベストフィット 
-```{r}
+
+<img src="img/biv_G2.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+
+ 
+```{r, results="hide"}
 fit.allX<-ramLCM(data=data,outcome=2:7, model='all')
 fitsX<-round(fit.allX$fit[
             c("chisq","df","pvalue","cfi",
               "srmr","rmsea","aic","bic"),],digits=2)
 datatable(fitsX,option=list(dom='t'))
 ```
-```{r}
+```{r, results="hide"}
 fit.allY<-ramLCM(data=data,outcome=8:13, model='all')
 fitsY<-round(fit.allY$fit[
             c("chisq","df","pvalue","cfi",
@@ -666,16 +672,66 @@ fitsY<-round(fit.allY$fit[
 datatable(fitsY,option=list(dom='t'))
 ```
 
-- ポジ認知のベストフィット
-
 
 # ALTM
 
-## いいい
+## ALTM
+
+<img src="img/bivALTM.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## ２つの時系列データ
+
+<img src="img/biv_ov.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## 交差遅延効果モデル
+
+<img src="img/biv_AR.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+## 成長曲線モデル
+
+<img src="img/biv_G2.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+## 交差遅延効果+潜在成長曲線=ALTM
+
+<img src="img/bivALTM.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+## 自己回帰のパス
+
+-変数の安定性
+<img src="img/bivALTM_AR.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## 交差遅延のパス
+- 変数間の因果関係
+<img src="img/biv_ALTM_cross.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+##　切片と傾き (全体の遷移パターン)
+
+<img src="img/bivALTM_G.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
 
 # LCS
 
-## ううう
+## さ
 
+<img src="img/bivLCM_ov.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## し
+
+<img src="img/bivLCM_ov2lat.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## せ
+
+<img src="img/bivLCM_beta.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+## そ
+
+<img src="img/bivLCM_gamma.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## た
+
+<img src="img/bivLCM_G.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
