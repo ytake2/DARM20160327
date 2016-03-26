@@ -6,9 +6,9 @@ output:
   revealjs::revealjs_presentation:
     pandoc_args: ["--slide-level", "2"]
     theme: white
-    hilight: "monochrome"
+    highlight: zenburn
     center: true
-    transition: fade
+    transition: convex
     incremental: false
     fig_width: 7
     fig_height: 4
@@ -188,6 +188,24 @@ cat(fit.all$model$latent)
 ```
 - 傾きの因子負荷を自由推定する
 - データドリブンな遷移パターン
+-ramLCMの自動コードは若干ミスってる
+
+## コードミスを修正
+
+```{r, echo=T}
+modelXlat<-'
+level =~ 1* X1 +1* X2 +1* X3 +1* X4 +1* X5 +1* X6 
+slope =~  0 * X1 +start( 1 )* X2 +start( 2 )* X3 +start( 3 )* X4 +start( 4 )* X5 + 5 * X6 
+X1 ~~(vare)* X1 
+X2 ~~(vare)* X2 
+X3 ~~(vare)* X3 
+X4 ~~(vare)* X4 
+X5 ~~(vare)* X5 
+X6 ~~(vare)* X6 
+'
+Xlat<-lavaan::growth(modelXlat,data)
+Xlat.fit<-round(fitmeasures(Xlat)[c("chisq","df","pvalue","cfi","srmr","rmsea","aic","bic")],digits=2)
+```
 
 ## 遷移プロット
 - plot.growth関数(自作)
@@ -212,9 +230,11 @@ print(d, vp=viewport(layout.pos.row=2, layout.pos.col=2)  )
 ## 適合度
 
 ```{r, echo=T}
+
 fits<-round(fit.all$fit[
             c("chisq","df","pvalue","cfi",
               "srmr","rmsea","aic","bic"),],digits=2)
+fits[,2]<-Xlat.fit
 datatable(fits,option=list(dom='t'))
 ```
 
@@ -588,18 +608,66 @@ abline(v=3, lty=2)
 
 # ２変量の関係性が知りたい
 
-## モチベーション
-- 2変数の時系列データ間の関係が知りたい
+## 2つの時系列データ
+- ポジ感情とポジ認知の経時データ
+```{r,echo=F, results="hide"}
+data<-read.csv("data/Garland.csv",header=T)
+
+M<-as.data.frame(t(sapply(data,each(mean,sd))))
+M<-round(M[-1,],digits=2)
+M$time<-rep(0:5,2)
+
+library(DT)
+M2<-t(M)
+#datatable(M2, options = list(dom = 't',  initComplete #= JS(
+#    "function(settings, json) {",
+#    "$(this.api().table().header()).css({'background-#color': '#E8A317', 'color': '#fff'});",
+#    "}")))
+M$var[1:6]<-paste0(rep("X",6))
+M$var[7:12]<-paste0(rep("Y",6))
+kable(M2)
+```
+```{r, fig.width=5, fig.height=2}
+ggplot(M, aes(x=time,y=mean, group=1))+ 
+              geom_line(col="blue", size=3)+
+              ylim(3.25,3.50)+facet_wrap(~var)+
+              #geom_line(aes(y=mean.Y,group=1),size=3,col="red")+
+              theme_bw()
+```
+
+<font size="1">
+Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness training promotes upward spirals of positive affect and cognition: multilevel and autoregressive latent trajectory modeling analyses. Frontiers in psychology, 6.</font>
 
 
-## モデル
+## 有効なモデル
 - parallel growth model
 - auto regressive latent trajectory model
 - latent change score model
 
 # parallel growth model
 
-## あああ
+##　 
+1. 各変数に最適な潜在成長曲線モデルを検討
+2. 潜在変数(切片と傾き)間の相関を推定
+   
+- ポジ感情のベストフィット 
+```{r}
+fit.allX<-ramLCM(data=data,outcome=2:7, model='all')
+fitsX<-round(fit.allX$fit[
+            c("chisq","df","pvalue","cfi",
+              "srmr","rmsea","aic","bic"),],digits=2)
+datatable(fitsX,option=list(dom='t'))
+```
+```{r}
+fit.allY<-ramLCM(data=data,outcome=8:13, model='all')
+fitsY<-round(fit.allY$fit[
+            c("chisq","df","pvalue","cfi",
+              "srmr","rmsea","aic","bic"),],digits=2)
+datatable(fitsY,option=list(dom='t'))
+```
+
+- ポジ認知のベストフィット
+
 
 # ALTM
 
