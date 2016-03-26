@@ -1,0 +1,62 @@
+! *********************************************************************************
+! The following code is used to replicate results presented in
+! 
+! Curran, P.J., Howard, A.L., Bainter, S.A., Lane, S.T., & McGinley, J.S. (2014). 
+! The separation of between-person and within-person components of individual 
+! change over time: A latent curve model with structured residuals. 
+! Journal of Consulting and Clinical Psychology, 82, 879-894.
+!
+! All data are artificially simulated. Please see article for
+! complete details about data generation and model fitting.
+! 
+! alc=alcohol, dep=depression, gen=gender (0=female, 1=male) 
+! trt=treatment condition (0=control, 1=treatment).
+! 
+! To stress, ALL DATA ARE ARTIFICIALLY SIMULATED.
+! *********************************************************************************
+
+title:
+ bivariate LCM-SR for alcohol use and depression that includes within-construct
+ residual auto-regressions but not across-construct time-lagged residual regressions. 
+ presented in the 1st full paragraph of the 1st column on page 890
+data: 
+ file=currandemo.dat;
+variable: 
+ names=id gen trt alc1-alc5 dep1-dep5;
+ usevar=alc1-alc5 dep1-dep5;
+analysis: 
+ estimator=ml;
+ model=nocovariances; ! supresses default estimation of certain covs in model;
+model:
+ alcint alcslp | alc1@0 alc2@1 alc3@2 alc4@3 alc5@4; ! linear growth in alc;
+ depint        | dep1@1 dep2@1 dep3@1 dep4@1 dep5@1; ! intercept-only in dep;    
+
+ alcint with alcslp; ! freeing factor covs because of "nocovariances" option earlier;
+ alcint with depint;
+ alcslp with depint;
+
+ alcres1 by alc1@1; ! create "phantom factors" to define the time-specific residuals;
+ alcres2 by alc2@1; ! for the SR-part of model. This is simply a programming trick so;
+ alcres3 by alc3@1; ! we can use the residuals as predictor and outcome variables;
+ alcres4 by alc4@1;
+ alcres5 by alc5@1;
+
+ depres1 by dep1@1;
+ depres2 by dep2@1;
+ depres3 by dep3@1;
+ depres4 by dep4@1;
+ depres5 by dep5@1;
+
+ [alc1-alc5@0]; alc1-alc5@0; ! fixing means & vars of manfiest repeated measures to 0; 
+ [dep1-dep5@0]; dep1-dep5@0;
+
+ [alcres1-alcres5@0]; alcres1-alcres5; ! estimate variances of residuals but;
+ [depres1-depres5@0]; depres1-depres5; ! keeping means fixed to 0 for identification;
+
+ alcres2-alcres5 pon alcres1-alcres4 (1); ! estimate and equate stability parameters;
+ depres2-depres5 pon depres1-depres4 (2); ! within each construct;
+
+ alcres1 with depres1;                       ! estimate t1 cov between alc & dep resid;
+ alcres2-alcres5 pwith depres2-depres5 (3);  ! estimate other cov's & equate over time;
+output: 
+ standardized;

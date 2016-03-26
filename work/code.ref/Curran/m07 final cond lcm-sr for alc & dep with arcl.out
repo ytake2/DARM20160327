@@ -1,0 +1,965 @@
+Mplus VERSION 7.3
+MUTHEN & MUTHEN
+03/26/2015  12:30 PM
+
+INPUT INSTRUCTIONS
+
+  ! *********************************************************************************
+  ! The following code is used to replicate results presented in
+  !
+  ! Curran, P.J., Howard, A.L., Bainter, S.A., Lane, S.T., & McGinley, J.S. (2014).
+  ! The separation of between-person and within-person components of individual
+  ! change over time: A latent curve model with structured residuals.
+  ! Journal of Consulting and Clinical Psychology, 82, 879-894.
+  !
+  ! All data are artificially simulated. Please see article for
+  ! complete details about data generation and model fitting.
+  !
+  ! alc=alcohol, dep=depression, gen=gender (0=female, 1=male)
+  ! trt=treatment condition (0=control, 1=treatment).
+  !
+  ! To stress, ALL DATA ARE ARTIFICIALLY SIMULATED.
+  ! *********************************************************************************
+
+  title:
+   final bivariate LCM-SR for alcohol use and depression that includes within-construct
+   residual auto-regressions, across-construct time-lagged residual regressions, and
+   interaction of time with lagged depression predicting alcohol use. All three
+   growth factors are regressed on two exogenous covariates gender and treatment
+   presented in 3rd paragraph of the 2nd column on page 890 & in Table 1 on page 891
+  data:
+   file=currandemo.dat;
+  variable:
+   names=id gen trt alc1-alc5 dep1-dep5;
+   usevar=gen trt alc1-alc5 dep1-dep5;
+  analysis:
+   estimator=ml;
+   model=nocovariances; ! supresses default estimation of certain covs in model;
+  model:
+   alcint alcslp | alc1@0 alc2@1 alc3@2 alc4@3 alc5@4; ! linear growth in alc;
+   depint        | dep1@1 dep2@1 dep3@1 dep4@1 dep5@1; ! intercept-only in dep;
+
+   alcint with alcslp; ! freeing factor covs because of "nocovariances" option earlier;
+   alcint with depint;
+   alcslp with depint;
+
+   alcint alcslp depint on gen trt; ! regressing growth factors on two covariates;
+
+   alcres1 by alc1@1; ! create "phantom factors" to define the time-specific residuals;
+   alcres2 by alc2@1; ! for the SR-part of model. This is simply a programming trick so;
+   alcres3 by alc3@1; ! we can use the residuals as predictor and outcome variables;
+   alcres4 by alc4@1;
+   alcres5 by alc5@1;
+
+   depres1 by dep1@1;
+   depres2 by dep2@1;
+   depres3 by dep3@1;
+   depres4 by dep4@1;
+   depres5 by dep5@1;
+
+   [alc1-alc5@0]; alc1-alc5@0; ! fixing means & vars of manfiest repeated measures to 0;
+   [dep1-dep5@0]; dep1-dep5@0;
+
+   [alcres1-alcres5@0]; alcres1-alcres5; ! estimate variances of residuals but;
+   [depres1-depres5@0]; depres1-depres5; ! keeping means fixed to 0 for identification;
+
+   alcres2-alcres5 pon alcres1-alcres4 (1); ! estimate and equate stability parameters;
+   depres2-depres5 pon depres1-depres4 (2); ! within each construct;
+
+   alcres1 with depres1;                       ! estimate t1 cov between alc & dep resid;
+   alcres2-alcres5 pwith depres2-depres5 (3);  ! estimate other cov's & equate over time;
+
+   alcres2 on depres1 (alcondep); ! estimating within-person lagged effect of dep;
+   alcres3 on depres2 (alcondep); ! predicting alc and equating over time;
+   alcres4 on depres3 (alcondep);
+   alcres5 on depres4 (alcondep);
+
+   depres2 on alcres1 (deponalc2); ! estimating within-person lagged effect of alc
+   depres3 on alcres2 (deponalc3); ! predicting dep. Not equated over time because;
+   depres4 on alcres3 (deponalc4); ! will impose interaction with time next;
+   depres5 on alcres4 (deponalc5);
+
+   model constraint:                  ! defining model constraint on alc predicting dep over
+    new(kappa);                       ! create "kappa" that corresponds to Eq 17 in paper;
+    deponalc3= deponalc2 + 1*kappa;   ! kappa serves to increment value of lagged effect;
+    deponalc4= deponalc2 + 2*kappa;   ! with each unit-passage of time;
+    deponalc5= deponalc2 + 3*kappa;
+
+  output:
+   standardized;
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+
+final bivariate LCM-SR for alcohol use and depression that includes within-construct
+residual auto-regressions, across-construct time-lagged residual regressions, and
+interaction of time with lagged depression predicting alcohol use. All three
+growth factors are regressed on two exogenous covariates gender and treatment
+presented in 3rd paragraph of the 2nd column on page 890 & in Table 1 on page 891
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         250
+
+Number of dependent variables                                   10
+Number of independent variables                                  2
+Number of continuous latent variables                           13
+
+Observed dependent variables
+
+  Continuous
+   ALC1        ALC2        ALC3        ALC4        ALC5        DEP1
+   DEP2        DEP3        DEP4        DEP5
+
+Observed independent variables
+   GEN         TRT
+
+Continuous latent variables
+   ALCRES1     ALCRES2     ALCRES3     ALCRES4     ALCRES5     DEPRES1
+   DEPRES2     DEPRES3     DEPRES4     DEPRES5     ALCINT      ALCSLP
+   DEPINT
+
+
+Estimator                                                       ML
+Information matrix                                        OBSERVED
+Maximum number of iterations                                  1000
+Convergence criterion                                    0.500D-04
+Maximum number of steepest descent iterations                   20
+
+Input data file(s)
+  currandemo.dat
+
+Input data format  FREE
+
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                       32
+
+Loglikelihood
+
+          H0 Value                       -5592.541
+          H1 Value                       -5557.946
+
+Information Criteria
+
+          Akaike (AIC)                   11249.081
+          Bayesian (BIC)                 11361.768
+          Sample-Size Adjusted BIC       11260.325
+            (n* = (n + 2) / 24)
+
+Chi-Square Test of Model Fit
+
+          Value                             69.189
+          Degrees of Freedom                    53
+          P-Value                           0.0669
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.035
+          90 Percent C.I.                    0.000  0.056
+          Probability RMSEA <= .05           0.867
+
+CFI/TLI
+
+          CFI                                0.985
+          TLI                                0.981
+
+Chi-Square Test of Model Fit for the Baseline Model
+
+          Value                           1130.395
+          Degrees of Freedom                    65
+          P-Value                           0.0000
+
+SRMR (Standardized Root Mean Square Residual)
+
+          Value                              0.042
+
+
+
+MODEL RESULTS
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ ALCINT   |
+    ALC1               1.000      0.000    999.000    999.000
+    ALC2               1.000      0.000    999.000    999.000
+    ALC3               1.000      0.000    999.000    999.000
+    ALC4               1.000      0.000    999.000    999.000
+    ALC5               1.000      0.000    999.000    999.000
+
+ ALCSLP   |
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               1.000      0.000    999.000    999.000
+    ALC3               2.000      0.000    999.000    999.000
+    ALC4               3.000      0.000    999.000    999.000
+    ALC5               4.000      0.000    999.000    999.000
+
+ DEPINT   |
+    DEP1               1.000      0.000    999.000    999.000
+    DEP2               1.000      0.000    999.000    999.000
+    DEP3               1.000      0.000    999.000    999.000
+    DEP4               1.000      0.000    999.000    999.000
+    DEP5               1.000      0.000    999.000    999.000
+
+ ALCRES1  BY
+    ALC1               1.000      0.000    999.000    999.000
+
+ ALCRES2  BY
+    ALC2               1.000      0.000    999.000    999.000
+
+ ALCRES3  BY
+    ALC3               1.000      0.000    999.000    999.000
+
+ ALCRES4  BY
+    ALC4               1.000      0.000    999.000    999.000
+
+ ALCRES5  BY
+    ALC5               1.000      0.000    999.000    999.000
+
+ DEPRES1  BY
+    DEP1               1.000      0.000    999.000    999.000
+
+ DEPRES2  BY
+    DEP2               1.000      0.000    999.000    999.000
+
+ DEPRES3  BY
+    DEP3               1.000      0.000    999.000    999.000
+
+ DEPRES4  BY
+    DEP4               1.000      0.000    999.000    999.000
+
+ DEPRES5  BY
+    DEP5               1.000      0.000    999.000    999.000
+
+ ALCRES2  ON
+    DEPRES1            0.441      0.060      7.375      0.000
+    ALCRES1            0.064      0.065      0.973      0.331
+
+ ALCRES3  ON
+    DEPRES2            0.441      0.060      7.375      0.000
+    ALCRES2            0.064      0.065      0.973      0.331
+
+ ALCRES4  ON
+    DEPRES3            0.441      0.060      7.375      0.000
+    ALCRES3            0.064      0.065      0.973      0.331
+
+ ALCRES5  ON
+    DEPRES4            0.441      0.060      7.375      0.000
+    ALCRES4            0.064      0.065      0.973      0.331
+
+ DEPRES2  ON
+    ALCRES1            0.105      0.065      1.615      0.106
+    DEPRES1            0.023      0.044      0.532      0.595
+
+ DEPRES3  ON
+    ALCRES2            0.225      0.040      5.588      0.000
+    DEPRES2            0.023      0.044      0.532      0.595
+
+ DEPRES4  ON
+    ALCRES3            0.345      0.034     10.283      0.000
+    DEPRES3            0.023      0.044      0.532      0.595
+
+ DEPRES5  ON
+    ALCRES4            0.466      0.053      8.862      0.000
+    DEPRES4            0.023      0.044      0.532      0.595
+
+ ALCINT   ON
+    GEN                1.187      0.314      3.777      0.000
+    TRT                0.319      0.315      1.013      0.311
+
+ ALCSLP   ON
+    GEN                0.654      0.150      4.373      0.000
+    TRT               -0.364      0.150     -2.430      0.015
+
+ DEPINT   ON
+    GEN               -1.570      0.166     -9.465      0.000
+    TRT               -0.412      0.167     -2.473      0.013
+
+ ALCINT   WITH
+    ALCSLP            -0.526      0.232     -2.263      0.024
+    DEPINT             0.449      0.265      1.697      0.090
+
+ ALCSLP   WITH
+    DEPINT             0.054      0.104      0.520      0.603
+
+ ALCRES1  WITH
+    DEPRES1            0.500      0.311      1.605      0.108
+
+ ALCRES2  WITH
+    DEPRES2            0.810      0.160      5.048      0.000
+
+ ALCRES3  WITH
+    DEPRES3            0.810      0.160      5.048      0.000
+
+ ALCRES4  WITH
+    DEPRES4            0.810      0.160      5.048      0.000
+
+ ALCRES5  WITH
+    DEPRES5            0.810      0.160      5.048      0.000
+
+ Means
+    ALCRES1            0.000      0.000    999.000    999.000
+    DEPRES1            0.000      0.000    999.000    999.000
+
+ Intercepts
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.000      0.000    999.000    999.000
+    ALC3               0.000      0.000    999.000    999.000
+    ALC4               0.000      0.000    999.000    999.000
+    ALC5               0.000      0.000    999.000    999.000
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    ALCRES2            0.000      0.000    999.000    999.000
+    ALCRES3            0.000      0.000    999.000    999.000
+    ALCRES4            0.000      0.000    999.000    999.000
+    ALCRES5            0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+    ALCINT             2.638      0.282      9.337      0.000
+    ALCSLP             0.459      0.134      3.417      0.001
+    DEPINT             1.988      0.149     13.332      0.000
+
+ Variances
+    ALCRES1            3.293      0.671      4.906      0.000
+    DEPRES1            2.447      0.281      8.721      0.000
+
+ Residual Variances
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.000      0.000    999.000    999.000
+    ALC3               0.000      0.000    999.000    999.000
+    ALC4               0.000      0.000    999.000    999.000
+    ALC5               0.000      0.000    999.000    999.000
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    ALCRES2            4.521      0.499      9.056      0.000
+    ALCRES3            4.909      0.565      8.683      0.000
+    ALCRES4            5.137      0.707      7.263      0.000
+    ALCRES5            7.334      1.045      7.020      0.000
+    DEPRES2            2.785      0.291      9.556      0.000
+    DEPRES3            2.179      0.231      9.441      0.000
+    DEPRES4            3.049      0.309      9.854      0.000
+    DEPRES5            3.112      0.342      9.112      0.000
+    ALCINT             3.708      0.705      5.257      0.000
+    ALCSLP             0.948      0.136      6.987      0.000
+    DEPINT             0.972      0.178      5.454      0.000
+
+New/Additional Parameters
+    KAPPA              0.120      0.033      3.680      0.000
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ ALCINT   |
+    ALC1               0.744      0.056     13.197      0.000
+    ALC2               0.656      0.051     12.860      0.000
+    ALC3               0.571      0.052     11.069      0.000
+    ALC4               0.484      0.047     10.350      0.000
+    ALC5               0.390      0.038     10.198      0.000
+
+ ALCSLP   |
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.339      0.026     13.018      0.000
+    ALC3               0.590      0.041     14.378      0.000
+    ALC4               0.750      0.045     16.618      0.000
+    ALC5               0.807      0.044     18.442      0.000
+
+ DEPINT   |
+    DEP1               0.632      0.038     16.600      0.000
+    DEP2               0.604      0.037     16.351      0.000
+    DEP3               0.632      0.036     17.500      0.000
+    DEP4               0.551      0.035     15.584      0.000
+    DEP5               0.520      0.033     15.585      0.000
+
+ ALCRES1  BY
+    ALC1               0.668      0.063     10.648      0.000
+
+ ALCRES2  BY
+    ALC2               0.729      0.032     22.496      0.000
+
+ ALCRES3  BY
+    ALC3               0.664      0.033     20.168      0.000
+
+ ALCRES4  BY
+    ALC4               0.571      0.037     15.522      0.000
+
+ ALCRES5  BY
+    ALC5               0.551      0.036     15.486      0.000
+
+ DEPRES1  BY
+    DEP1               0.775      0.031     25.017      0.000
+
+ DEPRES2  BY
+    DEP2               0.797      0.028     28.445      0.000
+
+ DEPRES3  BY
+    DEP3               0.775      0.029     26.354      0.000
+
+ DEPRES4  BY
+    DEP4               0.835      0.023     35.761      0.000
+
+ DEPRES5  BY
+    DEP5               0.854      0.020     41.948      0.000
+
+ ALCRES2  ON
+    DEPRES1            0.307      0.044      6.968      0.000
+    ALCRES1            0.051      0.054      0.958      0.338
+
+ ALCRES3  ON
+    DEPRES2            0.315      0.044      7.210      0.000
+    ALCRES2            0.061      0.062      0.978      0.328
+
+ ALCRES4  ON
+    DEPRES3            0.289      0.045      6.481      0.000
+    ALCRES3            0.063      0.064      0.977      0.329
+
+ ALCRES5  ON
+    DEPRES4            0.298      0.044      6.701      0.000
+    ALCRES4            0.053      0.056      0.950      0.342
+
+ DEPRES2  ON
+    ALCRES1            0.114      0.073      1.556      0.120
+    DEPRES1            0.022      0.041      0.532      0.595
+
+ DEPRES3  ON
+    ALCRES2            0.323      0.057      5.695      0.000
+    DEPRES2            0.025      0.047      0.530      0.596
+
+ DEPRES4  ON
+    ALCRES3            0.421      0.045      9.338      0.000
+    DEPRES3            0.019      0.036      0.532      0.595
+
+ DEPRES5  ON
+    ALCRES4            0.531      0.053      9.928      0.000
+    DEPRES4            0.022      0.041      0.529      0.597
+
+ ALCINT   ON
+    GEN                0.294      0.076      3.853      0.000
+    TRT                0.079      0.078      1.013      0.311
+
+ ALCSLP   ON
+    GEN                0.313      0.069      4.549      0.000
+    TRT               -0.174      0.071     -2.459      0.014
+
+ DEPINT   ON
+    GEN               -0.615      0.056    -11.007      0.000
+    TRT               -0.161      0.065     -2.485      0.013
+
+ ALCINT   WITH
+    ALCSLP            -0.280      0.097     -2.890      0.004
+    DEPINT             0.237      0.121      1.961      0.050
+
+ ALCSLP   WITH
+    DEPINT             0.056      0.107      0.523      0.601
+
+ ALCRES1  WITH
+    DEPRES1            0.176      0.101      1.749      0.080
+
+ ALCRES2  WITH
+    DEPRES2            0.228      0.046      5.002      0.000
+
+ ALCRES3  WITH
+    DEPRES3            0.248      0.046      5.401      0.000
+
+ ALCRES4  WITH
+    DEPRES4            0.205      0.042      4.855      0.000
+
+ ALCRES5  WITH
+    DEPRES5            0.170      0.036      4.693      0.000
+
+ Means
+    ALCRES1            0.000      0.000    999.000    999.000
+    DEPRES1            0.000      0.000    999.000    999.000
+
+ Intercepts
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.000      0.000    999.000    999.000
+    ALC3               0.000      0.000    999.000    999.000
+    ALC4               0.000      0.000    999.000    999.000
+    ALC5               0.000      0.000    999.000    999.000
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    ALCRES2            0.000      0.000    999.000    999.000
+    ALCRES3            0.000      0.000    999.000    999.000
+    ALCRES4            0.000      0.000    999.000    999.000
+    ALCRES5            0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+    ALCINT             1.306      0.201      6.496      0.000
+    ALCSLP             0.440      0.134      3.275      0.001
+    DEPINT             1.560      0.124     12.621      0.000
+
+ Variances
+    ALCRES1            1.000      0.000    999.000    999.000
+    DEPRES1            1.000      0.000    999.000    999.000
+
+ Residual Variances
+    ALC1               0.000    999.000    999.000    999.000
+    ALC2               0.000    999.000    999.000    999.000
+    ALC3               0.000    999.000    999.000    999.000
+    ALC4               0.000    999.000    999.000    999.000
+    ALC5               0.000    999.000    999.000    999.000
+    DEP1               0.000    999.000    999.000    999.000
+    DEP2               0.000    999.000    999.000    999.000
+    DEP3               0.000    999.000    999.000    999.000
+    DEP4               0.000    999.000    999.000    999.000
+    DEP5               0.000    999.000    999.000    999.000
+    ALCRES2            0.897      0.030     29.815      0.000
+    ALCRES3            0.888      0.031     28.338      0.000
+    ALCRES4            0.903      0.031     28.928      0.000
+    ALCRES5            0.901      0.032     28.482      0.000
+    DEPRES2            0.986      0.017     56.445      0.000
+    DEPRES3            0.891      0.038     23.743      0.000
+    DEPRES4            0.818      0.038     21.726      0.000
+    DEPRES5            0.712      0.057     12.450      0.000
+    ALCINT             0.908      0.046     19.719      0.000
+    ALCSLP             0.870      0.049     17.807      0.000
+    DEPINT             0.599      0.070      8.598      0.000
+
+
+STDY Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ ALCINT   |
+    ALC1               0.744      0.056     13.197      0.000
+    ALC2               0.656      0.051     12.860      0.000
+    ALC3               0.571      0.052     11.069      0.000
+    ALC4               0.484      0.047     10.350      0.000
+    ALC5               0.390      0.038     10.198      0.000
+
+ ALCSLP   |
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.339      0.026     13.018      0.000
+    ALC3               0.590      0.041     14.378      0.000
+    ALC4               0.750      0.045     16.618      0.000
+    ALC5               0.807      0.044     18.442      0.000
+
+ DEPINT   |
+    DEP1               0.632      0.038     16.600      0.000
+    DEP2               0.604      0.037     16.351      0.000
+    DEP3               0.632      0.036     17.500      0.000
+    DEP4               0.551      0.035     15.584      0.000
+    DEP5               0.520      0.033     15.585      0.000
+
+ ALCRES1  BY
+    ALC1               0.668      0.063     10.648      0.000
+
+ ALCRES2  BY
+    ALC2               0.729      0.032     22.496      0.000
+
+ ALCRES3  BY
+    ALC3               0.664      0.033     20.168      0.000
+
+ ALCRES4  BY
+    ALC4               0.571      0.037     15.522      0.000
+
+ ALCRES5  BY
+    ALC5               0.551      0.036     15.486      0.000
+
+ DEPRES1  BY
+    DEP1               0.775      0.031     25.017      0.000
+
+ DEPRES2  BY
+    DEP2               0.797      0.028     28.445      0.000
+
+ DEPRES3  BY
+    DEP3               0.775      0.029     26.354      0.000
+
+ DEPRES4  BY
+    DEP4               0.835      0.023     35.761      0.000
+
+ DEPRES5  BY
+    DEP5               0.854      0.020     41.948      0.000
+
+ ALCRES2  ON
+    DEPRES1            0.307      0.044      6.968      0.000
+    ALCRES1            0.051      0.054      0.958      0.338
+
+ ALCRES3  ON
+    DEPRES2            0.315      0.044      7.210      0.000
+    ALCRES2            0.061      0.062      0.978      0.328
+
+ ALCRES4  ON
+    DEPRES3            0.289      0.045      6.481      0.000
+    ALCRES3            0.063      0.064      0.977      0.329
+
+ ALCRES5  ON
+    DEPRES4            0.298      0.044      6.701      0.000
+    ALCRES4            0.053      0.056      0.950      0.342
+
+ DEPRES2  ON
+    ALCRES1            0.114      0.073      1.556      0.120
+    DEPRES1            0.022      0.041      0.532      0.595
+
+ DEPRES3  ON
+    ALCRES2            0.323      0.057      5.695      0.000
+    DEPRES2            0.025      0.047      0.530      0.596
+
+ DEPRES4  ON
+    ALCRES3            0.421      0.045      9.338      0.000
+    DEPRES3            0.019      0.036      0.532      0.595
+
+ DEPRES5  ON
+    ALCRES4            0.531      0.053      9.928      0.000
+    DEPRES4            0.022      0.041      0.529      0.597
+
+ ALCINT   ON
+    GEN                0.588      0.151      3.901      0.000
+    TRT                0.158      0.156      1.014      0.311
+
+ ALCSLP   ON
+    GEN                0.627      0.135      4.626      0.000
+    TRT               -0.349      0.141     -2.473      0.013
+
+ DEPINT   ON
+    GEN               -1.232      0.109    -11.356      0.000
+    TRT               -0.323      0.129     -2.500      0.012
+
+ ALCINT   WITH
+    ALCSLP            -0.280      0.097     -2.890      0.004
+    DEPINT             0.237      0.121      1.961      0.050
+
+ ALCSLP   WITH
+    DEPINT             0.056      0.107      0.523      0.601
+
+ ALCRES1  WITH
+    DEPRES1            0.176      0.101      1.749      0.080
+
+ ALCRES2  WITH
+    DEPRES2            0.228      0.046      5.002      0.000
+
+ ALCRES3  WITH
+    DEPRES3            0.248      0.046      5.401      0.000
+
+ ALCRES4  WITH
+    DEPRES4            0.205      0.042      4.855      0.000
+
+ ALCRES5  WITH
+    DEPRES5            0.170      0.036      4.693      0.000
+
+ Means
+    ALCRES1            0.000      0.000    999.000    999.000
+    DEPRES1            0.000      0.000    999.000    999.000
+
+ Intercepts
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.000      0.000    999.000    999.000
+    ALC3               0.000      0.000    999.000    999.000
+    ALC4               0.000      0.000    999.000    999.000
+    ALC5               0.000      0.000    999.000    999.000
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    ALCRES2            0.000      0.000    999.000    999.000
+    ALCRES3            0.000      0.000    999.000    999.000
+    ALCRES4            0.000      0.000    999.000    999.000
+    ALCRES5            0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+    ALCINT             1.306      0.201      6.496      0.000
+    ALCSLP             0.440      0.134      3.275      0.001
+    DEPINT             1.560      0.124     12.621      0.000
+
+ Variances
+    ALCRES1            1.000      0.000    999.000    999.000
+    DEPRES1            1.000      0.000    999.000    999.000
+
+ Residual Variances
+    ALC1             999.000    999.000    999.000    999.000
+    ALC2             999.000    999.000    999.000    999.000
+    ALC3             999.000    999.000    999.000    999.000
+    ALC4             999.000    999.000    999.000    999.000
+    ALC5             999.000    999.000    999.000    999.000
+    DEP1             999.000    999.000    999.000    999.000
+    DEP2             999.000    999.000    999.000    999.000
+    DEP3             999.000    999.000    999.000    999.000
+    DEP4             999.000    999.000    999.000    999.000
+    DEP5             999.000    999.000    999.000    999.000
+    ALCRES2            0.897      0.030     29.815      0.000
+    ALCRES3            0.888      0.031     28.338      0.000
+    ALCRES4            0.903      0.031     28.928      0.000
+    ALCRES5            0.901      0.032     28.482      0.000
+    DEPRES2            0.986      0.017     56.445      0.000
+    DEPRES3            0.891      0.038     23.743      0.000
+    DEPRES4            0.818      0.038     21.726      0.000
+    DEPRES5            0.712      0.057     12.450      0.000
+    ALCINT             0.908      0.046     19.719      0.000
+    ALCSLP             0.870      0.049     17.807      0.000
+    DEPINT             0.599      0.070      8.598      0.000
+
+
+STD Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ ALCINT   |
+    ALC1               2.020      0.181     11.139      0.000
+    ALC2               2.020      0.181     11.139      0.000
+    ALC3               2.020      0.181     11.139      0.000
+    ALC4               2.020      0.181     11.139      0.000
+    ALC5               2.020      0.181     11.139      0.000
+
+ ALCSLP   |
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               1.044      0.071     14.795      0.000
+    ALC3               2.088      0.141     14.795      0.000
+    ALC4               3.132      0.212     14.795      0.000
+    ALC5               4.176      0.282     14.795      0.000
+
+ DEPINT   |
+    DEP1               1.274      0.090     14.109      0.000
+    DEP2               1.274      0.090     14.109      0.000
+    DEP3               1.274      0.090     14.109      0.000
+    DEP4               1.274      0.090     14.109      0.000
+    DEP5               1.274      0.090     14.109      0.000
+
+ ALCRES1  BY
+    ALC1               1.815      0.185      9.812      0.000
+
+ ALCRES2  BY
+    ALC2               2.244      0.122     18.327      0.000
+
+ ALCRES3  BY
+    ALC3               2.351      0.140     16.793      0.000
+
+ ALCRES4  BY
+    ALC4               2.385      0.165     14.455      0.000
+
+ ALCRES5  BY
+    ALC5               2.854      0.193     14.818      0.000
+
+ DEPRES1  BY
+    DEP1               1.564      0.090     17.441      0.000
+
+ DEPRES2  BY
+    DEP2               1.681      0.088     19.007      0.000
+
+ DEPRES3  BY
+    DEP3               1.564      0.084     18.672      0.000
+
+ DEPRES4  BY
+    DEP4               1.930      0.091     21.098      0.000
+
+ DEPRES5  BY
+    DEP5               2.091      0.097     21.622      0.000
+
+ ALCRES2  ON
+    DEPRES1            0.307      0.044      6.968      0.000
+    ALCRES1            0.051      0.054      0.958      0.338
+
+ ALCRES3  ON
+    DEPRES2            0.315      0.044      7.210      0.000
+    ALCRES2            0.061      0.062      0.978      0.328
+
+ ALCRES4  ON
+    DEPRES3            0.289      0.045      6.481      0.000
+    ALCRES3            0.063      0.064      0.977      0.329
+
+ ALCRES5  ON
+    DEPRES4            0.298      0.044      6.701      0.000
+    ALCRES4            0.053      0.056      0.950      0.342
+
+ DEPRES2  ON
+    ALCRES1            0.114      0.073      1.556      0.120
+    DEPRES1            0.022      0.041      0.532      0.595
+
+ DEPRES3  ON
+    ALCRES2            0.323      0.057      5.695      0.000
+    DEPRES2            0.025      0.047      0.530      0.596
+
+ DEPRES4  ON
+    ALCRES3            0.421      0.045      9.338      0.000
+    DEPRES3            0.019      0.036      0.532      0.595
+
+ DEPRES5  ON
+    ALCRES4            0.531      0.053      9.928      0.000
+    DEPRES4            0.022      0.041      0.529      0.597
+
+ ALCINT   ON
+    GEN                0.588      0.151      3.901      0.000
+    TRT                0.158      0.156      1.014      0.311
+
+ ALCSLP   ON
+    GEN                0.627      0.135      4.626      0.000
+    TRT               -0.349      0.141     -2.473      0.013
+
+ DEPINT   ON
+    GEN               -1.232      0.109    -11.356      0.000
+    TRT               -0.323      0.129     -2.500      0.012
+
+ ALCINT   WITH
+    ALCSLP            -0.280      0.097     -2.890      0.004
+    DEPINT             0.237      0.121      1.961      0.050
+
+ ALCSLP   WITH
+    DEPINT             0.056      0.107      0.523      0.601
+
+ ALCRES1  WITH
+    DEPRES1            0.176      0.101      1.749      0.080
+
+ ALCRES2  WITH
+    DEPRES2            0.228      0.046      5.002      0.000
+
+ ALCRES3  WITH
+    DEPRES3            0.248      0.046      5.401      0.000
+
+ ALCRES4  WITH
+    DEPRES4            0.205      0.042      4.855      0.000
+
+ ALCRES5  WITH
+    DEPRES5            0.170      0.036      4.693      0.000
+
+ Means
+    ALCRES1            0.000      0.000    999.000    999.000
+    DEPRES1            0.000      0.000    999.000    999.000
+
+ Intercepts
+    ALC1               0.000      0.000    999.000    999.000
+    ALC2               0.000      0.000    999.000    999.000
+    ALC3               0.000      0.000    999.000    999.000
+    ALC4               0.000      0.000    999.000    999.000
+    ALC5               0.000      0.000    999.000    999.000
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    ALCRES2            0.000      0.000    999.000    999.000
+    ALCRES3            0.000      0.000    999.000    999.000
+    ALCRES4            0.000      0.000    999.000    999.000
+    ALCRES5            0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+    ALCINT             1.306      0.201      6.496      0.000
+    ALCSLP             0.440      0.134      3.275      0.001
+    DEPINT             1.560      0.124     12.621      0.000
+
+ Variances
+    ALCRES1            1.000      0.000    999.000    999.000
+    DEPRES1            1.000      0.000    999.000    999.000
+
+ Residual Variances
+    ALC1             999.000    999.000    999.000    999.000
+    ALC2             999.000    999.000    999.000    999.000
+    ALC3             999.000    999.000    999.000    999.000
+    ALC4             999.000    999.000    999.000    999.000
+    ALC5             999.000    999.000    999.000    999.000
+    DEP1             999.000    999.000    999.000    999.000
+    DEP2             999.000    999.000    999.000    999.000
+    DEP3             999.000    999.000    999.000    999.000
+    DEP4             999.000    999.000    999.000    999.000
+    DEP5             999.000    999.000    999.000    999.000
+    ALCRES2            0.897      0.030     29.815      0.000
+    ALCRES3            0.888      0.031     28.338      0.000
+    ALCRES4            0.903      0.031     28.928      0.000
+    ALCRES5            0.901      0.032     28.482      0.000
+    DEPRES2            0.986      0.017     56.445      0.000
+    DEPRES3            0.891      0.038     23.743      0.000
+    DEPRES4            0.818      0.038     21.726      0.000
+    DEPRES5            0.712      0.057     12.450      0.000
+    ALCINT             0.908      0.046     19.719      0.000
+    ALCSLP             0.870      0.049     17.807      0.000
+    DEPINT             0.599      0.070      8.598      0.000
+
+
+R-SQUARE
+
+    Observed                                        Two-Tailed
+    Variable        Estimate       S.E.  Est./S.E.    P-Value
+
+    ALC1               1.000    999.000    999.000    999.000
+    ALC2               1.000    999.000    999.000    999.000
+    ALC3               1.000    999.000    999.000    999.000
+    ALC4               1.000    999.000    999.000    999.000
+    ALC5               1.000    999.000    999.000    999.000
+    DEP1               1.000    999.000    999.000    999.000
+    DEP2               1.000    999.000    999.000    999.000
+    DEP3               1.000    999.000    999.000    999.000
+    DEP4               1.000    999.000    999.000    999.000
+    DEP5               1.000    999.000    999.000    999.000
+
+     Latent                                         Two-Tailed
+    Variable        Estimate       S.E.  Est./S.E.    P-Value
+
+    ALCRES2            0.103      0.030      3.408      0.001
+    ALCRES3            0.112      0.031      3.570      0.000
+    ALCRES4            0.097      0.031      3.117      0.002
+    ALCRES5            0.099      0.032      3.142      0.002
+    DEPRES2            0.014      0.017      0.818      0.414
+    DEPRES3            0.109      0.038      2.907      0.004
+    DEPRES4            0.182      0.038      4.825      0.000
+    DEPRES5            0.288      0.057      5.039      0.000
+    ALCINT             0.092      0.046      1.987      0.047
+    ALCSLP             0.130      0.049      2.667      0.008
+    DEPINT             0.401      0.070      5.762      0.000
+
+
+QUALITY OF NUMERICAL RESULTS
+
+     Condition Number for the Information Matrix              0.173E-03
+       (ratio of smallest to largest eigenvalue)
+
+
+DIAGRAM INFORMATION
+
+  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
+  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
+
+  Diagram output
+    c:\projects\current\lcm-sr\m07 final cond lcm-sr for alc & dep with arcl.dgm
+
+     Beginning Time:  12:30:53
+        Ending Time:  12:30:53
+       Elapsed Time:  00:00:00
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2014 Muthen & Muthen

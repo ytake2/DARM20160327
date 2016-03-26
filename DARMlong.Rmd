@@ -462,6 +462,8 @@ s1 ~ (a)*1 ; s2 ~ (a)*1
 anova(model1.2fit, model1.fit)
 ```
 
+今回のモデルでは期間による傾きの違いは認められない
+
 ## もうちょい頑張る
 - 前半を２次曲線モデルに
 ```{r, echo=T}
@@ -489,7 +491,7 @@ X1 ~ 0; X2 ~ 0; X3 ~ 0; X4 ~ 0; X5 ~ 0; X6 ~ 0
 ```
 
 ##　どやさ
--今回の適合度
+- 今回の適合度
 ```{r, echo=T}
 model2.fit<-lavaan::growth(model2, data=data)
 fit2.m<-round(fitMeasures(model2.fit)
@@ -508,9 +510,9 @@ fit1.m<-t(as.data.frame(fit1.m))
 datatable(fit1.m,options=list(dom="t"))
 ```
 
-- 圧倒的なfit感!!
+圧倒的なfit感!!
 
-## 圧倒的なfit感!!
+## データに応じて柔軟にfit!!
 
 ```{r}
 library(tidyr)
@@ -539,7 +541,7 @@ abline(v=3, lty=2)
 ```
 
 
-##　期間ごとに切片が異なるモデル
+##　期間で切片が異なるモデル
 - 二つ切片因子を設定
 ```{r, echo=T}
 model2.2 <-'
@@ -569,7 +571,7 @@ X5 ~ 0
 X6 ~ 0 '
 ```
 
-## こんな感じでプロット
+## 推定結果はこんな感じ
 
 ```{r}
 library(lavaan)
@@ -655,22 +657,86 @@ Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness tr
 <img src="img/biv_G2.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
 
+## lavaanで実行
+- 暫定的に以下のモデルで
+    - ポジ感情: 2次曲線モデル
+    - ポジ認知: 切片のみのモデル
 
- 
-```{r, results="hide"}
-fit.allX<-ramLCM(data=data,outcome=2:7, model='all')
-fitsX<-round(fit.allX$fit[
-            c("chisq","df","pvalue","cfi",
-              "srmr","rmsea","aic","bic"),],digits=2)
-datatable(fitsX,option=list(dom='t'))
+```{r, echo=T}
+parallel<-'
+# posi感情のモデル (2次)
+level.X =~ 1* X1 +1* X2 +1* X3 +1* X4 +1* X5 +1* X6 
+slope.X =~  0 * X1 + 1 * X2 + 2 * X3 + 3 * X4 + 4 * X5 + 5 * X6 
+quadratic.X =~  0 * X1 + 1 * X2 + 4 * X3 + 9 * X4 + 16 * X5 + 25 * X6 
+
+# posi認知のモデル (切片のみ)
+level.Y =~ 1* Y1 +1* Y2 +1* Y3 +1* Y4 +1* Y5 +1* Y6 
+
+'
 ```
-```{r, results="hide"}
-fit.allY<-ramLCM(data=data,outcome=8:13, model='all')
-fitsY<-round(fit.allY$fit[
+
+## 推定結果
+
+```{r, echo=T}
+para<-lavaan::growth(parallel, data)
+round(fitmeasures(para)[
             c("chisq","df","pvalue","cfi",
-              "srmr","rmsea","aic","bic"),],digits=2)
-datatable(fitsY,option=list(dom='t'))
+              "srmr","rmsea","aic","bic")],digits=2)
 ```
+
+- フィットしてない...
+
+## 因子間相関
+```{r, echo=T}
+parameterEstimates(para,standardized=T)[41:46,c(1:3,11,7)]
+```
+- 因子間相関はそこそこ相関が高い
+- Yのベースラインが高いほど、X傾きが正に大きくなる
+- X変数の1次の傾きと2次の傾き因子の相関が高い
+    - 因子負荷を中心化するのも有効 (多重共線性を回避)
+
+## ねばってみる
+- 傾き因子の係数がとても小さいので省く
+- 同時点の残差間に共分散を仮定する
+
+```{r, echo=T}
+parallel2<-'
+# posi感情のモデル (2次)
+level.X =~ 1* X1 +1* X2 +1* X3 +1* X4 +1* X5 +1* X6 
+# posi認知のモデル (切片のみ)
+level.Y =~ 1* Y1 +1* Y2 +1* Y3 +1* Y4 +1* Y5 +1* Y6 
+
+X1 ~~ Y1
+X2 ~~ Y2
+X3 ~~ Y3
+X4 ~~ Y4
+X5 ~~ Y5
+X6 ~~ Y6
+'
+```
+
+## そこそこの適合度に
+
+```{r, echo=T}
+para2<-lavaan::growth(parallel2, data)
+round(fitmeasures(para2)[
+            c("chisq","df","pvalue","cfi",
+              "srmr","rmsea","aic","bic")],digits=2)
+```
+
+## 推定結果
+
+```{r, echo=T}
+summary(para2, standardized=T, fit.measures=T)
+```
+
+- ベースラインのポジ感情の高さとベースラインのポジ認知の高さに正の関連あり...
+
+
+## 物足りない
+- 変数間の因果にせまれない  
+- 時点間の自己相関や相互相関が考慮されない  
+
 
 
 # ALTM
@@ -688,7 +754,7 @@ datatable(fitsY,option=list(dom='t'))
 <img src="img/biv_AR.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
 
-## 成長曲線モデル
+## parallel成長曲線モデル
 
 <img src="img/biv_G2.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
@@ -701,37 +767,109 @@ datatable(fitsY,option=list(dom='t'))
 ## 自己回帰のパス
 
 -変数の安定性
+
 <img src="img/bivALTM_AR.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
 ## 交差遅延のパス
 - 変数間の因果関係
+
 <img src="img/biv_ALTM_cross.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
-##　切片と傾き (全体の遷移パターン)
+##　遷移パターン (切片と傾き)
 
 <img src="img/bivALTM_G.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+## lavaanでALTM
+```{r, echo=T}
+source('script/bivALTM.R')
+cat(ALTM)
+```
+
+
+## 推定
+```{r, echo=T}
+summary(AL<-growth(ALTM, data), standardized=T, fit.measures=T)
+```
+- 適合度が少し良くなった？
+
+
+## 自己回帰と交差遅延に等置制約
+```{r, echo=T}
+cat(ALTM2)
+```
+
+## 自己回帰だけ等値制約
+```{r, echo=T}
+cat(ALTM3)
+```
+
+## 自己回帰を推定しない
+```{r, echo=T}
+cat(ALTM4)
+```
+
+## 各モデルを比較
+```{r, echo=T}
+AL2<-growth(ALTM2, data); AL3<-growth(ALTM3, data); AL4<-growth(ALTM4, data)
+library(semTools)
+compareFit(para2,AL,AL2, AL3,AL4)
+```
+
+- 今回のデータでは、自己回帰や交差遅延モデルの効果がないため、parallel process growth modelでもALTMでも、さほど変わらない。ALTMを実施することで、変数間因果的な関係も検討できる。
+
+
+## ALTMモデルまとめ
+- 各変数の自己回帰特性を検討
+- 変数間の因果的関係性を検討
+- 等値制約等複数のモデルを比較検討し、遅延交差モデルの様相を検討
+
+## おまけ: CurranのLCM−SRモデル
+- 残差構造に交差遅延モデルをかますのもいいらしい
+- 潜在成長曲線；beween person effect
+- 残差の交差遅延：within person effect
+
+<img src="img/LCM-SR.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+<font size="1">
+Curran, Patrick J., et al. "The separation of between-person and within-person components of individual change over time: A latent curve model with structured residuals." Journal of consulting and clinical psychology 82.5 (2014): 879.</font>
 
 
 # LCS
 
-## さ
+## 二つの時系列データ
 
 <img src="img/bivLCM_ov.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
-## し
+## 観測変数を潜在化+自己回帰のパス
 
 <img src="img/bivLCM_ov2lat.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
-## せ
+
+## 各時点の変化量を潜在化
 
 <img src="img/bivLCM_beta.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 
 
-## そ
 
+## βパス
+- proportional change parameter
+- self-feedback effect
+<img src="img/bivLCM_beta.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+- 1時点前の得点が高いor低いと次の時点では得点の変化が大きくなる(平均への回帰) 
+
+## γパス
+- coupling parameter
 <img src="img/bivLCM_gamma.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+- １時点前の一方の変数の得点が高いor低いと、次の時点におけるもう一方の変数の得点の変化が大きくなる。
 
-## た
+
+## 切片と傾き
 
 <img src="img/bivLCM_G.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
+
+
+## Grimmら (2012) による拡張
+- 潜在変化量間に交差遅延モデルを組み込む
+- 変化が変化を生む
+<img src="img/bivLCM_G2.png" style="background:none; border:none; box-shadow:none;" width="700" height="400">
 

@@ -1,0 +1,466 @@
+Mplus VERSION 7.11 (Mac)
+MUTHEN & MUTHEN
+03/26/2016   6:06 PM
+
+INPUT INSTRUCTIONS
+
+  ! *********************************************************************************
+  ! The following code is used to replicate results presented in
+  !
+  ! Curran, P.J., Howard, A.L., Bainter, S.A., Lane, S.T., & McGinley, J.S. (2014).
+  ! The separation of between-person and within-person components of individual
+  ! change over time: A latent curve model with structured residuals.
+  ! Journal of Consulting and Clinical Psychology, 82, 879-894.
+  !
+  ! All data are artificially simulated. Please see article for
+  ! complete details about data generation and model fitting.
+  !
+  ! alc=alcohol, dep=depression, gen=gender (0=female, 1=male)
+  ! trt=treatment condition (0=control, 1=treatment).
+  !
+  ! To stress, ALL DATA ARE ARTIFICIALLY SIMULATED.
+  ! *********************************************************************************
+
+  title:
+   univariate intercept-only LCM-SR for depression including regressions among the residuals
+   presented in the 1st full paragraph of the 2nd column on page 889
+  data:
+   file=currandemo.dat;
+  variable:
+   names=id gen trt alc1-alc5 dep1-dep5;
+   usevar=dep1-dep5;
+  analysis:
+   estimator=ml;
+   model=nocovariances; ! supresses default estimation of certain covs in model;
+  model:
+   depint        | dep1@1 dep2@1 dep3@1 dep4@1 dep5@1; ! intercept-only in dep;
+
+   depres1 by dep1@1; ! create "phantom factors" to define the time-specific residuals;
+   depres2 by dep2@1; ! for the SR-part of model. This is simply a programming trick so;
+   depres3 by dep3@1; ! we can use the residuals as predictor and outcome variables;
+   depres4 by dep4@1;
+   depres5 by dep5@1;
+
+   [dep1-dep5@0]; dep1-dep5@0; ! fixing means & vars of manfiest repeated measures to 0;
+   [depres1-depres5@0]; depres1-depres5; ! estimate variances of residuals;
+
+   depres2-depres5 pon depres1-depres4 (1); ! estimate and equate AR parameters;
+
+  output:
+   standardized;
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+
+univariate intercept-only LCM-SR for depression including regressions among the residuals
+presented in the 1st full paragraph of the 2nd column on page 889
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         250
+
+Number of dependent variables                                    5
+Number of independent variables                                  0
+Number of continuous latent variables                            6
+
+Observed dependent variables
+
+  Continuous
+   DEP1        DEP2        DEP3        DEP4        DEP5
+
+Continuous latent variables
+   DEPRES1     DEPRES2     DEPRES3     DEPRES4     DEPRES5     DEPINT
+
+
+Estimator                                                       ML
+Information matrix                                        OBSERVED
+Maximum number of iterations                                  1000
+Convergence criterion                                    0.500D-04
+Maximum number of steepest descent iterations                   20
+
+Input data file(s)
+  currandemo.dat
+
+Input data format  FREE
+
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                        8
+
+Loglikelihood
+
+          H0 Value                       -2606.641
+          H1 Value                       -2595.823
+
+Information Criteria
+
+          Akaike (AIC)                    5229.282
+          Bayesian (BIC)                  5257.453
+          Sample-Size Adjusted BIC        5232.093
+            (n* = (n + 2) / 24)
+
+Chi-Square Test of Model Fit
+
+          Value                             21.636
+          Degrees of Freedom                    12
+          P-Value                           0.0418
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.057
+          90 Percent C.I.                    0.011  0.094
+          Probability RMSEA <= .05           0.346
+
+CFI/TLI
+
+          CFI                                0.965
+          TLI                                0.971
+
+Chi-Square Test of Model Fit for the Baseline Model
+
+          Value                            288.463
+          Degrees of Freedom                    10
+          P-Value                           0.0000
+
+SRMR (Standardized Root Mean Square Residual)
+
+          Value                              0.051
+
+
+
+MODEL RESULTS
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ DEPINT   |
+    DEP1               1.000      0.000    999.000    999.000
+    DEP2               1.000      0.000    999.000    999.000
+    DEP3               1.000      0.000    999.000    999.000
+    DEP4               1.000      0.000    999.000    999.000
+    DEP5               1.000      0.000    999.000    999.000
+
+ DEPRES1  BY
+    DEP1               1.000      0.000    999.000    999.000
+
+ DEPRES2  BY
+    DEP2               1.000      0.000    999.000    999.000
+
+ DEPRES3  BY
+    DEP3               1.000      0.000    999.000    999.000
+
+ DEPRES4  BY
+    DEP4               1.000      0.000    999.000    999.000
+
+ DEPRES5  BY
+    DEP5               1.000      0.000    999.000    999.000
+
+ DEPRES2  ON
+    DEPRES1            0.064      0.048      1.334      0.182
+
+ DEPRES3  ON
+    DEPRES2            0.064      0.048      1.334      0.182
+
+ DEPRES4  ON
+    DEPRES3            0.064      0.048      1.334      0.182
+
+ DEPRES5  ON
+    DEPRES4            0.064      0.048      1.334      0.182
+
+ Means
+    DEPRES1            0.000      0.000    999.000    999.000
+    DEPINT             0.989      0.098     10.116      0.000
+
+ Intercepts
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+
+ Variances
+    DEPRES1            2.457      0.273      9.008      0.000
+    DEPINT             1.756      0.223      7.879      0.000
+
+ Residual Variances
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    DEPRES2            2.859      0.314      9.113      0.000
+    DEPRES3            2.013      0.234      8.586      0.000
+    DEPRES4            3.540      0.371      9.530      0.000
+    DEPRES5            4.090      0.407     10.042      0.000
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ DEPINT   |
+    DEP1               0.646      0.033     19.663      0.000
+    DEP2               0.616      0.034     17.905      0.000
+    DEP3               0.682      0.034     20.304      0.000
+    DEP4               0.575      0.034     16.927      0.000
+    DEP5               0.547      0.032     17.146      0.000
+
+ DEPRES1  BY
+    DEP1               0.764      0.028     27.504      0.000
+
+ DEPRES2  BY
+    DEP2               0.788      0.027     29.253      0.000
+
+ DEPRES3  BY
+    DEP3               0.732      0.031     23.407      0.000
+
+ DEPRES4  BY
+    DEP4               0.818      0.024     34.202      0.000
+
+ DEPRES5  BY
+    DEP5               0.837      0.021     40.075      0.000
+
+ DEPRES2  ON
+    DEPRES1            0.059      0.044      1.356      0.175
+
+ DEPRES3  ON
+    DEPRES2            0.077      0.058      1.326      0.185
+
+ DEPRES4  ON
+    DEPRES3            0.049      0.037      1.320      0.187
+
+ DEPRES5  ON
+    DEPRES4            0.060      0.046      1.307      0.191
+
+ Means
+    DEPRES1            0.000      0.000    999.000    999.000
+    DEPINT             0.747      0.088      8.466      0.000
+
+ Intercepts
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+
+ Variances
+    DEPRES1            1.000      0.000    999.000    999.000
+    DEPINT             1.000      0.000    999.000    999.000
+
+ Residual Variances
+    DEP1               0.000    999.000    999.000    999.000
+    DEP2               0.000    999.000    999.000    999.000
+    DEP3               0.000    999.000    999.000    999.000
+    DEP4               0.000    999.000    999.000    999.000
+    DEP5               0.000    999.000    999.000    999.000
+    DEPRES2            0.996      0.005    190.819      0.000
+    DEPRES3            0.994      0.009    112.530      0.000
+    DEPRES4            0.998      0.004    279.064      0.000
+    DEPRES5            0.996      0.005    182.223      0.000
+
+
+STDY Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ DEPINT   |
+    DEP1               0.646      0.033     19.663      0.000
+    DEP2               0.616      0.034     17.905      0.000
+    DEP3               0.682      0.034     20.304      0.000
+    DEP4               0.575      0.034     16.927      0.000
+    DEP5               0.547      0.032     17.146      0.000
+
+ DEPRES1  BY
+    DEP1               0.764      0.028     27.504      0.000
+
+ DEPRES2  BY
+    DEP2               0.788      0.027     29.253      0.000
+
+ DEPRES3  BY
+    DEP3               0.732      0.031     23.407      0.000
+
+ DEPRES4  BY
+    DEP4               0.818      0.024     34.202      0.000
+
+ DEPRES5  BY
+    DEP5               0.837      0.021     40.075      0.000
+
+ DEPRES2  ON
+    DEPRES1            0.059      0.044      1.356      0.175
+
+ DEPRES3  ON
+    DEPRES2            0.077      0.058      1.326      0.185
+
+ DEPRES4  ON
+    DEPRES3            0.049      0.037      1.320      0.187
+
+ DEPRES5  ON
+    DEPRES4            0.060      0.046      1.307      0.191
+
+ Means
+    DEPRES1            0.000      0.000    999.000    999.000
+    DEPINT             0.747      0.088      8.466      0.000
+
+ Intercepts
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+
+ Variances
+    DEPRES1            1.000      0.000    999.000    999.000
+    DEPINT             1.000      0.000    999.000    999.000
+
+ Residual Variances
+    DEP1             999.000    999.000    999.000    999.000
+    DEP2             999.000    999.000    999.000    999.000
+    DEP3             999.000    999.000    999.000    999.000
+    DEP4             999.000    999.000    999.000    999.000
+    DEP5             999.000    999.000    999.000    999.000
+    DEPRES2            0.996      0.005    190.819      0.000
+    DEPRES3            0.994      0.009    112.530      0.000
+    DEPRES4            0.998      0.004    279.064      0.000
+    DEPRES5            0.996      0.005    182.223      0.000
+
+
+STD Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ DEPINT   |
+    DEP1               1.325      0.084     15.758      0.000
+    DEP2               1.325      0.084     15.758      0.000
+    DEP3               1.325      0.084     15.758      0.000
+    DEP4               1.325      0.084     15.758      0.000
+    DEP5               1.325      0.084     15.758      0.000
+
+ DEPRES1  BY
+    DEP1               1.567      0.087     18.016      0.000
+
+ DEPRES2  BY
+    DEP2               1.694      0.094     18.003      0.000
+
+ DEPRES3  BY
+    DEP3               1.423      0.084     16.895      0.000
+
+ DEPRES4  BY
+    DEP4               1.884      0.100     18.931      0.000
+
+ DEPRES5  BY
+    DEP5               2.026      0.101     20.119      0.000
+
+ DEPRES2  ON
+    DEPRES1            0.059      0.044      1.356      0.175
+
+ DEPRES3  ON
+    DEPRES2            0.077      0.058      1.326      0.185
+
+ DEPRES4  ON
+    DEPRES3            0.049      0.037      1.320      0.187
+
+ DEPRES5  ON
+    DEPRES4            0.060      0.046      1.307      0.191
+
+ Means
+    DEPRES1            0.000      0.000    999.000    999.000
+    DEPINT             0.747      0.088      8.466      0.000
+
+ Intercepts
+    DEP1               0.000      0.000    999.000    999.000
+    DEP2               0.000      0.000    999.000    999.000
+    DEP3               0.000      0.000    999.000    999.000
+    DEP4               0.000      0.000    999.000    999.000
+    DEP5               0.000      0.000    999.000    999.000
+    DEPRES2            0.000      0.000    999.000    999.000
+    DEPRES3            0.000      0.000    999.000    999.000
+    DEPRES4            0.000      0.000    999.000    999.000
+    DEPRES5            0.000      0.000    999.000    999.000
+
+ Variances
+    DEPRES1            1.000      0.000    999.000    999.000
+    DEPINT             1.000      0.000    999.000    999.000
+
+ Residual Variances
+    DEP1             999.000    999.000    999.000    999.000
+    DEP2             999.000    999.000    999.000    999.000
+    DEP3             999.000    999.000    999.000    999.000
+    DEP4             999.000    999.000    999.000    999.000
+    DEP5             999.000    999.000    999.000    999.000
+    DEPRES2            0.996      0.005    190.819      0.000
+    DEPRES3            0.994      0.009    112.530      0.000
+    DEPRES4            0.998      0.004    279.064      0.000
+    DEPRES5            0.996      0.005    182.223      0.000
+
+
+R-SQUARE
+
+    Observed                                        Two-Tailed
+    Variable        Estimate       S.E.  Est./S.E.    P-Value
+
+    DEP1               1.000    999.000    999.000    999.000
+    DEP2               1.000    999.000    999.000    999.000
+    DEP3               1.000    999.000    999.000    999.000
+    DEP4               1.000    999.000    999.000    999.000
+    DEP5               1.000    999.000    999.000    999.000
+
+     Latent                                         Two-Tailed
+    Variable        Estimate       S.E.  Est./S.E.    P-Value
+
+    DEPRES2            0.004      0.005      0.678      0.498
+    DEPRES3            0.006      0.009      0.663      0.507
+    DEPRES4            0.002      0.004      0.660      0.509
+    DEPRES5            0.004      0.005      0.654      0.513
+
+
+QUALITY OF NUMERICAL RESULTS
+
+     Condition Number for the Information Matrix              0.277E-01
+       (ratio of smallest to largest eigenvalue)
+
+
+     Beginning Time:  18:06:40
+        Ending Time:  18:06:40
+       Elapsed Time:  00:00:00
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2013 Muthen & Muthen

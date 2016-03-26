@@ -1,0 +1,45 @@
+! *********************************************************************************
+! The following code is used to replicate results presented in
+! 
+! Curran, P.J., Howard, A.L., Bainter, S.A., Lane, S.T., & McGinley, J.S. (2014). 
+! The separation of between-person and within-person components of individual 
+! change over time: A latent curve model with structured residuals. 
+! Journal of Consulting and Clinical Psychology, 82, 879-894.
+!
+! All data are artificially simulated. Please see article for
+! complete details about data generation and model fitting.
+! 
+! alc=alcohol, dep=depression, gen=gender (0=female, 1=male) 
+! trt=treatment condition (0=control, 1=treatment).
+! 
+! To stress, ALL DATA ARE ARTIFICIALLY SIMULATED.
+! *********************************************************************************
+
+title:
+ univariate intercept-only LCM-SR for depression NOT including regressions among residuals
+ presented in the 1st full paragraph of the 2nd column on page 889
+ this model has phantom variables defined but are not needed here. this only sets up
+ the ability to estimate regressions among the residuals in later models
+data: 
+ file=currandemo.dat;
+variable: 
+ names=id gen trt alc1-alc5 dep1-dep5;
+ usevar=dep1-dep5;
+analysis: 
+ estimator=ml;
+ model=nocovariances; ! supresses default estimation of certain covs in model;
+model:
+ depint        | dep1@1 dep2@1 dep3@1 dep4@1 dep5@1; ! intercept-only in dep;    
+
+ depres1 by dep1@1; ! create "phantom factors" to define the time-specific residuals;
+ depres2 by dep2@1; ! for the SR-part of model. This is simply a programming trick so;
+ depres3 by dep3@1; ! we can use the residuals as predictor and outcome variables;
+ depres4 by dep4@1; ! these are not necessary in this model but allow for more;
+ depres5 by dep5@1; ! complex models later;
+
+ [dep1-dep5@0]; dep1-dep5@0; ! fixing means & vars of manfiest repeated measures to 0; 
+ [depres1-depres5@0];        ! fixing mean of resids to zero for identification;
+  depres1-depres5;           ! estimating variances of residuals;
+
+output: 
+ standardized;
