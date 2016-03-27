@@ -51,7 +51,7 @@ opts_chunk$set(warning=F, message=F,echo=F)
 |4   |変数間の因果的関連        |      LCMS|
 |5   |4のクラスタリング         |       GMM|
 
-<font size="2"> LCM=latent growth model, LCS=latent change score model, GMM=growth mixure model</font>  
+<font size="2"> LGM=latent growth model, LCS=latent change score model, GMM=growth mixure model</font>  
 <font size="1">McArdle, J. J., & Grimm, K. J. (2010). Five steps in latent curve and latent change score modeling with longitudinal data. In Longitudinal research with latent variables (pp. 245-273). Springer Berlin Heidelberg.</font>
 
 # 非線形モデルのモチベ
@@ -89,8 +89,10 @@ knitr::include_graphics("img/piecewise1.jpg")
 # サンプルデータ
 
 ## ポジ感情の経時データ
-- Garland et al. (2015)の記述統計と相関行列から名のデータ生成
-- 
+- Garland et al.(2015)
+- 記述統計と相関行列から2000名のデータ生成
+- 6日間ポジティブ気分を経時測定
+
 ```{r,echo=F, results="asis"}
 data<-read.csv("data/Garland.csv",header=T)
 data<-data[,2:7]
@@ -113,9 +115,13 @@ M2<-t(M)
 kable(M2)
 ```
 
-##　なだらかな減少傾向？
+<font size="1">
+Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness training promotes upward spirals of positive affect and cognition: multilevel and autoregressive latent trajectory modeling analyses. Frontiers in psychology, 6.</font>
 
-```{r, fig.width=5, fig.height=2}
+
+##　なだらかな減少傾向？
+- 4日目で少し傾向が変わっていそう
+```{r}
 ggplot(M, aes(x=time,y=mean, group=1))+ 
               geom_line(col="blue", size=3)+
               ylim(3,4)+
@@ -123,24 +129,25 @@ ggplot(M, aes(x=time,y=mean, group=1))+
               theme_bw()
 ```
 
-<font size="1">
-Garland, E. L., Geschwind, N., Peeters, F., & Wichers, M. (2015). Mindfulness training promotes upward spirals of positive affect and cognition: multilevel and autoregressive latent trajectory modeling analyses. Frontiers in psychology, 6.</font>
-
 
 # Rで潜在成長曲線モデル
 
 ## まじめに書くと
 ```
+# 切片
 level =~ 1* bmi1 +1* bmi2 +1* bmi3 +
          1* bmi4 +1* bmi5 +1* bmi6 
+# 傾き
 slope =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 
          3 * bmi4 + 4 * bmi5 + 5 * bmi6 
-bmi1 ~~(vare)* bmi1 
-bmi2 ~~(vare)* bmi2 
-bmi3 ~~(vare)* bmi3 
-bmi4 ~~(vare)* bmi4 
-bmi5 ~~(vare)* bmi5 
-bmi6 ~~(vare)* bmi6 
+
+# 誤差分散
+bmi1 ~~(vare)* bmi1  # 等値制約
+bmi2 ~~(vare)* bmi2  # 等値制約
+bmi3 ~~(vare)* bmi3  # 等値制約
+bmi4 ~~(vare)* bmi4  # 等値制約
+bmi5 ~~(vare)* bmi5  # 等値制約
+bmi6 ~~(vare)* bmi6  # 等値制約
 ```
 結構めんどい...
 
@@ -169,7 +176,7 @@ library(RAMpath)
 fit.all<-ramLCM(data=data,outcome=1:6, model='all')
 ```
 
-### 個別にどん
+### 個別にポン
 ```{r, echo=T, results='hide'}
 fit.no<-ramLCM(data=data,outcome=1:6, model='no')
 fit.linear<-ramLCM(data=data,outcome=1:6, model='linear')
@@ -214,7 +221,7 @@ cat(fit.all$model$latent)
 
 
 ## 適合度
-- 2次曲線モデルの適合が良い
+- 今回は2次曲線モデルの適合が良い
 ```{r, echo=T}
 fits<-round(fit.all$fit[
             c("chisq","df","pvalue","cfi",
@@ -916,7 +923,7 @@ Curran, Patrick J., et al. "The separation of between-person and within-person c
 
 ## cont(betaパス)
 - self-feedback effectとも呼ばれる
-- betaパスをモデルに含むと, 潜在差(latent change)とセルフフィードバック(proportional change)の二つの変化を含むモデルになるので, dual change modelと呼ばれることもある
+- betaパスをモデルに含むと, 成長曲線による遷移パターン (latent growth)とセルフフィードバック(proportional change)の二つの変化を含むモデルになるので, dual change modelと呼ばれることもある
 
 
 ## gammaパス
